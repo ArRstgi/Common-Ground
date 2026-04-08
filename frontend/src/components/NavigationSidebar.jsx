@@ -1,50 +1,30 @@
-import './styles/NavigationSidebar.css';
+import Box from '@mui/material/Box';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Avatar from '@mui/material/Avatar';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import PollOutlinedIcon from '@mui/icons-material/PollOutlined';
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
+import Person2OutlinedIcon from '@mui/icons-material/Person2Outlined';
 
-// ── Icons ──────────────────────────────────────────────────────────────────────
+// ── Constants ──────────────────────────────────────────────────────────────────
 
-const DashboardIcon = () => (
-    <svg className="nav-sidebar__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="1" y="1" width="6" height="6" rx="1" />
-        <rect x="9" y="1" width="6" height="6" rx="1" />
-        <rect x="1" y="9" width="6" height="6" rx="1" />
-        <rect x="9" y="9" width="6" height="6" rx="1" />
-    </svg>
-);
-
-const SurveysIcon = () => (
-    <svg className="nav-sidebar__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M14 10c0 2.2-2.7 4-6 4S2 12.2 2 10c0-1.4 1-2.6 2.5-3.3" />
-        <ellipse cx="8" cy="6" rx="6" ry="4" />
-    </svg>
-);
-
-const FindTeamsIcon = () => (
-    <svg className="nav-sidebar__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M2 12c0-2.2 2.7-4 6-4s6 1.8 6 4" />
-        <circle cx="8" cy="5" r="3" />
-    </svg>
-);
-
-const ProfileIcon = () => (
-    <svg className="nav-sidebar__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <circle cx="8" cy="6" r="3" />
-        <path d="M2 14c0-2.8 2.7-5 6-5s6 2.2 6 5" />
-    </svg>
-);
-
-// ── Nav items config ───────────────────────────────────────────────────────────
+const DRAWER_WIDTH = 220;
 
 const NAV_ITEMS = [
-    { id: 'dashboard',  label: 'Dashboard',   icon: <DashboardIcon />,  href: '#' },
-    { id: 'surveys',    label: 'My Surveys',  icon: <SurveysIcon />,    href: '#' },
-    { id: 'find-teams', label: 'Find Teams',  icon: <FindTeamsIcon />,  href: '#' },
-    { id: 'profile',    label: 'Profile',     icon: <ProfileIcon />,    href: '#' },
+    { id: 'dashboard',  label: 'Dashboard',  icon: <DashboardOutlinedIcon fontSize="small" /> },
+    { id: 'surveys',    label: 'My Surveys', icon: <PollOutlinedIcon fontSize="small" />     },
+    { id: 'find-teams', label: 'Find Teams', icon: <GroupsOutlinedIcon fontSize="small" />   },
+    { id: 'profile',    label: 'Profile',    icon: <Person2OutlinedIcon fontSize="small" />    },
 ];
 
-// ── User config ────────────────────────────────────────────────────────────────
-
 const USER = {
-    initials: 'AB',
+    initials: 'AC',
     name: 'Alice Chen',
     role: 'Amherst College',
 };
@@ -55,48 +35,117 @@ const USER = {
  * NavigationSidebar
  *
  * Props:
- *   activeId  {string}    – ID of the currently active nav item.
- *                           Matches one of: 'dashboard' | 'surveys' | 'find-teams' | 'profile'
- *   onNavigate {function} – Optional callback: (id, href) => void
- *                           Called when a nav item is clicked.
- *                           Use this to update activeId in the parent.
+ *   activeId   {string}    – ID of the currently active nav item.
+ *                            One of: 'dashboard' | 'surveys' | 'find-teams' | 'profile'
+ *   onNavigate {function}  – Optional callback: (id) => void
+ *                            Called when a nav item is clicked.
+ *                            Use this to update activeId in the parent.
  */
 export default function NavigationSidebar({ activeId, onNavigate }) {
-    const handleClick = (e, item) => {
-        if (onNavigate) {
-            e.preventDefault();
-            onNavigate(item.id, item.href);
-        }
-    };
-
     return (
-        <aside className="nav-sidebar">
-            <div className="nav-sidebar__logo">Common Ground</div>
+        <Drawer
+            variant="permanent"
+            sx={{
+                width: DRAWER_WIDTH,
+                flexShrink: 0,
+                '& .MuiDrawer-paper': {
+                    width: DRAWER_WIDTH,
+                    boxSizing: 'border-box',
+                    bgcolor: 'background.paper',
+                    borderRight: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    px: 1,
+                    py: 3.5,
+                },
+            }}
+        >
+            {/* Logo */}
+            <Typography
+                variant="overline"
+                sx={{
+                    px: 1,
+                    mb: 3,
+                    letterSpacing: '0.08em',
+                    fontWeight: 500,
+                    color: 'text.secondary',
+                }}
+            >
+                Common Ground
+            </Typography>
 
-            {NAV_ITEMS.map((item) => (
-                <a
-                    key={item.id}
-                    href={item.href}
-                    className={[
-                        'nav-sidebar__item',
-                        item.id === activeId ? 'nav-sidebar__item--active' : '',
-                    ].join(' ').trim()}
-                    onClick={(e) => handleClick(e, item)}
-                >
-                    {item.icon}
-                    {item.label}
-                </a>
-            ))}
+            {/* Nav items */}
+            <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                {NAV_ITEMS.map((item) => {
+                    const isActive = item.id === activeId;
+                    return (
+                        <ListItemButton
+                            key={item.id}
+                            selected={isActive}
+                            onClick={() => onNavigate?.(item.id)}
+                            sx={{
+                                borderRadius: 2,
+                                py: '9px',
+                                px: 1.5,
+                                '&.Mui-selected': {
+                                    bgcolor: 'primary.50',
+                                    color: 'primary.main',
+                                    '&:hover': { bgcolor: 'primary.50' },
+                                },
+                                '&:hover': { bgcolor: 'action.hover' },
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    mr: 1.25,
+                                    color: isActive ? 'primary.main' : 'text.secondary',
+                                    opacity: isActive ? 1 : 0.7,
+                                }}
+                            >
+                                {item.icon}
+                            </ListItemIcon>
+                            <ListItemText
+                                primary={item.label}
+                                slotProps={{
+                                    primary: {
+                                        fontSize: 14,
+                                        fontWeight: isActive ? 500 : 400,
+                                        color: isActive ? 'primary.main' : 'text.secondary',
+                                    },
+                                }}
+                            />
+                        </ListItemButton>
+                    );
+                })}
+            </List>
 
-            <div className="nav-sidebar__footer">
-                <div className="nav-sidebar__user">
-                    <div className="nav-sidebar__avatar">{USER.initials}</div>
-                    <div>
-                        <div className="nav-sidebar__user-name">{USER.name}</div>
-                        <div className="nav-sidebar__user-role">{USER.role}</div>
-                    </div>
-                </div>
-            </div>
-        </aside>
+            {/* Footer */}
+            <Box sx={{ mt: 'auto' }}>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, px: 1.5 }}>
+                    <Avatar
+                        sx={{
+                            width: 28,
+                            height: 28,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            bgcolor: 'primary.main',
+                        }}
+                    >
+                        {USER.initials}
+                    </Avatar>
+                    <Box>
+                        <Typography variant="body2" fontWeight={500}>
+                            {USER.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled">
+                            {USER.role}
+                        </Typography>
+                    </Box>
+                </Box>
+            </Box>
+        </Drawer>
     );
 }
