@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login        from "./pages/Login";
 import Register     from "./pages/Register";
 import Dashboard    from "./pages/Dashboard";
+import SurveyJoin   from "./pages/SurveyJoin";
 
 // SurveyDetail — stub until Contributor B implements it
 function SurveyDetail() {
@@ -27,6 +28,9 @@ export default function App() {
 
           {/* Protected routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+
+          {/* SHOULD be protected, unprotected for testing  */}
+          <Route path="/surveyjoin" element={<SurveyJoin />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
