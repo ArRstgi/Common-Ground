@@ -53,7 +53,7 @@ export default function Register() {
         <Typography variant="h5" fontWeight={700} gutterBottom>
           Common Ground
         </Typography>
-        <Typography variant="body2" color="text.secondary" mb={3}>
+        <Typography variant="body2" color="text.secondary" mb={3} gutterBottom>
           Create your account
         </Typography>
 
@@ -100,7 +100,7 @@ export default function Register() {
             variant="contained"
             disabled={loading}
             fullWidth
-            sx={{ mt: 0.5, py: 1, fontWeight: 600 }}
+            sx={{ my: 0.5, py: 1, fontWeight: 600 }}
           >
             {loading ? "Creating account…" : "Create account"}
           </Button>

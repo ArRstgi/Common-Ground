@@ -54,7 +54,7 @@ export default function Login() {
         <Typography variant="h5" fontWeight={700} gutterBottom>
             Common Ground
         </Typography>
-        <Typography variant="body2" color="text.secondary" mb={3}>
+        <Typography variant="body2" color="text.secondary" mb={3} gutterBottom>
             Sign in to your account
         </Typography>
 
@@ -92,13 +92,13 @@ export default function Login() {
             variant="contained"
             disabled={loading}
             fullWidth
-            sx={{ mt: 0.5, py: 1, fontWeight: 600 }}
+            sx={{ my: 0.5, py: 1, fontWeight: 600 }}
           >
             {loading ? "Signing in…" : "Sign in"}
           </Button>
         </Box>
 
-        <Typography variant="body2" color="text.secondary" textAlign="center" mt={2.5}>
+        <Typography variant="body2" color="text.secondary" textalign="center" mt={2.5}>
           Don't have an account?{" "}
           <MuiLink component={Link} to="/register">
             Create one
