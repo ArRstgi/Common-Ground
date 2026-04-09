@@ -15,6 +15,5 @@ export default function SurveyJoin() {
         <h2>Join a survey</h2>
       </main>
     </div>
-    
   );
 }
