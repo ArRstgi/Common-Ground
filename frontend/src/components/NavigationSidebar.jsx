@@ -11,16 +11,22 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import PollOutlinedIcon from '@mui/icons-material/PollOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import Person2OutlinedIcon from '@mui/icons-material/Person2Outlined';
+import CircleIcon from '@mui/icons-material/Circle';
+
+import { Link } from "react-router-dom";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const DRAWER_WIDTH = 220;
 
 const NAV_ITEMS = [
-    { id: 'dashboard',  label: 'Dashboard',  icon: <DashboardOutlinedIcon fontSize="small" /> },
-    { id: 'surveys',    label: 'My Surveys', icon: <PollOutlinedIcon fontSize="small" />     },
-    { id: 'find-teams', label: 'Find Teams', icon: <GroupsOutlinedIcon fontSize="small" />   },
-    { id: 'profile',    label: 'Profile',    icon: <Person2OutlinedIcon fontSize="small" />    },
+    { id: 'dashboard',  label: 'Dashboard',  href: '/dashboard',  icon: <DashboardOutlinedIcon fontSize="small" /> },
+    // TODO: make this go to a "My Surveys" page rather than surveydetail
+    { id: 'surveys',    label: 'My Surveys', href: '/surveydetail',    icon: <PollOutlinedIcon fontSize="small" />     },
+    { id: 'find-teams', label: 'Find Teams', href: '/teams',      icon: <GroupsOutlinedIcon fontSize="small" />  },
+    { id: 'profile',    label: 'Profile',    href: '/profile',    icon: <Person2OutlinedIcon fontSize="small" />   },
+    { id: 'create-survey',    label: 'Create Survey',    href: '/surveycreate',    icon: <CircleIcon fontSize="small" />   },
+    { id: 'survey-join',    label: 'Join Survey',    href: '/surveyjoin',    icon: <CircleIcon fontSize="small" />   },
 ];
 
 const USER = {
@@ -41,7 +47,7 @@ const USER = {
  *                            Called when a nav item is clicked.
  *                            Use this to update activeId in the parent.
  */
-export default function NavigationSidebar({ activeId, onNavigate }) {
+export default function NavigationSidebar({ activeId }) {
     return (
         <Drawer
             variant="permanent"
@@ -82,8 +88,9 @@ export default function NavigationSidebar({ activeId, onNavigate }) {
                     return (
                         <ListItemButton
                             key={item.id}
+                            component={Link}
+                            to={item.href}
                             selected={isActive}
-                            onClick={() => onNavigate?.(item.id)}
                             sx={{
                                 borderRadius: 2,
                                 py: '9px',

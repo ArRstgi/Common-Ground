@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import NavigationSidebar from "./components/NavigationSidebar";
+import Box from "@mui/material/Box";
 
 import Login        from "./pages/Login";
 import Register     from "./pages/Register";
@@ -8,21 +9,33 @@ import Dashboard    from "./pages/Dashboard";
 import SurveyJoin   from "./pages/SurveyJoin";
 import TeamDetail   from "./pages/TeamDetail";
 import TeamBrowser  from "./pages/TeamBrowser";
+import SurveyCreate from "./pages/SurveyCreate";
+import Profile      from "./pages/Profile";
+import SurveyDetail from "./pages/SurveyDetails";
 
-// SurveyDetail — stub until Contributor B implements it
-function SurveyDetail() {
-  return (
-    <main style={{ padding: "3rem 2rem", textAlign: "center", color: "#555" }}>
-      <h2>Survey detail</h2>
-      <p style={{ fontSize: "0.9rem" }}>Contributor B will implement this page.</p>
-    </main>
-  );
-}
+
+const ROUTES_WITHOUT_SIDEBAR = ["/login", "/register"];
+
+const NAV_ID_BY_PATH = {
+    "/dashboard":  "dashboard",
+    "/surveys":    "surveys",
+    "/find-teams": "find-teams",
+    "/profile":    "profile",
+    "/surveycreate": "create-survey",
+    "/surveyjoin": "survey-join",
+};
 
 export default function App() {
+  const location = useLocation();
+  const showSidebar = !ROUTES_WITHOUT_SIDEBAR.includes(location.pathname);
+  const activeId = NAV_ID_BY_PATH[location.pathname] ?? "dashboard";
+
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      {showSidebar && (
+          <NavigationSidebar activeId={activeId} />
+      )}
+      <Box component="main" sx={{ flex: 1 }}>
         <Routes>
           {/* Public routes */}
           <Route path="/login"    element={<Login />} />
@@ -33,13 +46,16 @@ export default function App() {
 
           {/* SHOULD be protected, unprotected for testing  */}
           <Route path="/surveyjoin" element={<SurveyJoin />} />
+          <Route path="/surveycreate" element={<SurveyCreate />} />
+          <Route path="/surveydetail" element={<SurveyDetail />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/teams" element={<TeamBrowser />} />
           <Route path="/teams/:teamId" element={<TeamDetail />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </Box>
+    </Box>
   );
 }
