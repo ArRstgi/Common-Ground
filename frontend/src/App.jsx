@@ -6,6 +6,8 @@ import Login        from "./pages/Login";
 import Register     from "./pages/Register";
 import Dashboard    from "./pages/Dashboard";
 import SurveyJoin   from "./pages/SurveyJoin";
+import TeamDetail   from "./pages/TeamDetail";
+import TeamBrowser  from "./pages/TeamBrowser";
 
 // SurveyDetail — stub until Contributor B implements it
 function SurveyDetail() {
@@ -31,6 +33,8 @@ export default function App() {
 
           {/* SHOULD be protected, unprotected for testing  */}
           <Route path="/surveyjoin" element={<SurveyJoin />} />
+          <Route path="/teams" element={<TeamBrowser />} />
+          <Route path="/teams/:teamId" element={<TeamDetail />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
