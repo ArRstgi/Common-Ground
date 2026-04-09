@@ -10,16 +10,7 @@ import TeamDetail   from "./pages/TeamDetail";
 import TeamBrowser  from "./pages/TeamBrowser";
 import SurveyCreate from "./pages/SurveyCreate";
 import Profile from "./pages/Profile";
-
-// SurveyDetail — stub until Contributor B implements it
-function SurveyDetail() {
-  return (
-    <main style={{ padding: "3rem 2rem", textAlign: "center", color: "#555" }}>
-      <h2>Survey detail</h2>
-      <p style={{ fontSize: "0.9rem" }}>Contributor B will implement this page.</p>
-    </main>
-  );
-}
+import SurveyDetail from "./pages/SurveyDetails";
 
 export default function App() {
   return (
