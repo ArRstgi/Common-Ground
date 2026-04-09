@@ -8,6 +8,8 @@ import Dashboard    from "./pages/Dashboard";
 import SurveyJoin   from "./pages/SurveyJoin";
 import TeamDetail   from "./pages/TeamDetail";
 import TeamBrowser  from "./pages/TeamBrowser";
+import SurveyCreate from "./pages/SurveyCreate";
+import Profile from "./pages/Profile";
 
 // SurveyDetail — stub until Contributor B implements it
 function SurveyDetail() {
@@ -33,6 +35,9 @@ export default function App() {
 
           {/* SHOULD be protected, unprotected for testing  */}
           <Route path="/surveyjoin" element={<SurveyJoin />} />
+          <Route path="/surveycreate" element={<SurveyCreate />} />
+          <Route path="/surveydetail" element={<SurveyDetail />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/teams" element={<TeamBrowser />} />
           <Route path="/teams/:teamId" element={<TeamDetail />} />
 
