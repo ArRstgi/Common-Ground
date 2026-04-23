@@ -22,7 +22,7 @@ export default function Dashboard() {
         <p style={{ color: "#666" }}>Your surveys and teams will appear here.</p>
 
         <div style={styles.grid}>
-          <Tile label="Join a survey" onClick={() => navigate("/survey/join")} />
+          <Tile label="Join a survey" onClick={() => navigate("/surveyjoin")} />
           <Tile label="Browse teams"  onClick={() => navigate("/teams")} />
           <Tile label="My profile"    onClick={() => navigate("/profile")} />
         </div>
