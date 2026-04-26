@@ -22,6 +22,7 @@ import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import NavigationSidebar from '../components/NavigationSidebar';
 import { getClient } from '../lib/supabase';
+import { api } from '../api/client';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -261,7 +262,7 @@ function matchColor(pct) {
 
 // ── Recommended card ──────────────────────────────────────────────────────────
 
-function RecommendedCard({ rec, rank }) {
+function RecommendedCard({ rec, rank, onAction }) {
   const color = matchColor(rec.matchPct);
   const isSolo = rec.type === 'person';
 
@@ -370,6 +371,7 @@ function RecommendedCard({ rec, rank }) {
           size="small"
           fullWidth
           sx={{ fontSize: 12, py: 0.75, mt: 0.25 }}
+          onClick={onAction}
         >
           {isSolo ? 'Invite to team' : 'Request merge'}
         </Button>
@@ -393,6 +395,8 @@ export default function TeamBrowser() {
   const [search, setSearch]     = useState('');
   const [openOnly, setOpenOnly] = useState(false);
   const [recFilter, setRecFilter] = useState('all'); // 'all' | 'person' | 'team'
+  const [recommendations, setRecommendations] = useState([]);
+  const [recLoading, setRecLoading] = useState(false);
 
   useEffect(() => {
     fetchBrowserData()
@@ -400,6 +404,15 @@ export default function TeamBrowser() {
       .catch(err => setError(err.message ?? 'Failed to load teams'))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!data?.survey?.id) return;
+    setRecLoading(true);
+    api.get(`/recommendations/survey/${data.survey.id}/matches`)
+      .then(setRecommendations)
+      .catch(() => setRecommendations([]))
+      .finally(() => setRecLoading(false));
+  }, [data?.survey?.id]);
 
   const myTeam = data?.teams[DEMO_MY_TEAM_INDEX] ?? null;
 
@@ -412,10 +425,10 @@ export default function TeamBrowser() {
     });
   }, [data, search, openOnly]);
 
-  // Recommended tab uses the static mock data (real algorithm to be wired in later)
+  // Recommended tab — data from real API endpoint
   const recommended = recFilter === 'all'
-    ? MOCK_RECOMMENDATIONS
-    : MOCK_RECOMMENDATIONS.filter(r => r.type === recFilter);
+    ? recommendations
+    : recommendations.filter(r => r.type === recFilter);
 
   function handleView(teamId) {
     navigate(`/teams/${teamId}`);
@@ -659,7 +672,11 @@ export default function TeamBrowser() {
               </Typography>
             </Box>
 
-            {recommended.length === 0 ? (
+            {recLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+                <CircularProgress size={32} />
+              </Box>
+            ) : recommended.length === 0 ? (
               <Typography variant="body2" color="text.disabled" textAlign="center" mt={6}>
                 No recommendations available yet.
               </Typography>
@@ -667,7 +684,7 @@ export default function TeamBrowser() {
               <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 1.75 }}>
                 {recommended.map((rec, i) => (
                   <Box key={rec.id}>
-                    <RecommendedCard rec={rec} rank={i + 1} />
+                    <RecommendedCard rec={rec} rank={i + 1} onAction={() => handleRequestMerge(rec.id)} />
                   </Box>
                 ))}
               </Box>
