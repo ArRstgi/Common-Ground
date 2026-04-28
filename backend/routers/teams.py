@@ -26,7 +26,7 @@ async def create_merge_request(
         supabase_admin.table("teams")
         .select("id, created_by")
         .eq("id", requesting_team_id)
-        .maybeSingle()
+        .maybe_single()
         .execute()
     )
     if not req_team.data:
@@ -39,7 +39,7 @@ async def create_merge_request(
         supabase_admin.table("teams")
         .select("id")
         .eq("id", team_id)
-        .maybeSingle()
+        .maybe_single()
         .execute()
     )
     if not target_team.data:
@@ -52,7 +52,7 @@ async def create_merge_request(
         .eq("requesting_team_id", requesting_team_id)
         .eq("target_team_id", team_id)
         .eq("status", "pending")
-        .maybeSingle()
+        .maybe_single()
         .execute()
     )
     if existing.data:

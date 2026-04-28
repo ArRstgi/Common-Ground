@@ -35,7 +35,7 @@ def _chain(*args, data=None):
     m = MagicMock()
     m.select.return_value = m
     m.eq.return_value = m
-    m.maybeSingle.return_value = m
+    m.maybe_single.return_value = m
     m.insert.return_value = m
     m.execute.return_value = _make_result(data)
     return m
@@ -79,7 +79,7 @@ def test_self_merge_rejected(client):
 def test_requesting_team_not_found(client):
     with patch("routers.teams.supabase_admin") as mock_db:
         mock_db.table.return_value.select.return_value.eq.return_value \
-            .maybeSingle.return_value.execute.return_value = _make_result(None)
+            .maybe_single.return_value.execute.return_value = _make_result(None)
 
         res = _post(client)
     assert res.status_code == 404
@@ -93,7 +93,7 @@ def test_not_team_creator_forbidden(client):
         m = MagicMock()
         m.select.return_value = m
         m.eq.return_value = m
-        m.maybeSingle.return_value = m
+        m.maybe_single.return_value = m
         m.execute.return_value = _make_result(req_team_row)
         return m
 
@@ -112,7 +112,7 @@ def test_target_team_not_found(client):
         m = MagicMock()
         m.select.return_value = m
         m.eq.return_value = m
-        m.maybeSingle.return_value = m
+        m.maybe_single.return_value = m
         call_count[0] += 1
         # First call → requesting team found; second call → target team missing
         m.execute.return_value = _make_result(req_team_row if call_count[0] == 1 else None)
@@ -136,7 +136,7 @@ def test_duplicate_pending_request_rejected(client):
         m = MagicMock()
         m.select.return_value = m
         m.eq.return_value = m
-        m.maybeSingle.return_value = m
+        m.maybe_single.return_value = m
         m.execute.return_value = _make_result(next(results))
         return m
 
@@ -158,7 +158,7 @@ def test_successful_merge_request(client):
         m = MagicMock()
         m.select.return_value = m
         m.eq.return_value = m
-        m.maybeSingle.return_value = m
+        m.maybe_single.return_value = m
         m.insert.return_value = m
         call_count[0] += 1
         if call_count[0] <= 3:
