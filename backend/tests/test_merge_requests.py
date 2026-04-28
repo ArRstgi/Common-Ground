@@ -24,36 +24,30 @@ MERGE_REQUEST_ROW = {
 
 
 def _make_result(data):
-    """Return a mock Supabase query result object."""
     m = MagicMock()
     m.data = data
     return m
 
 
-def _chain(*args, data=None):
-    """Return a chainable mock that ends with .execute() -> data."""
+def _chainable_table(data):
+    """Return a mock table that chains select/eq/limit/insert and returns data on execute()."""
     m = MagicMock()
     m.select.return_value = m
     m.eq.return_value = m
-    m.maybe_single.return_value = m
+    m.limit.return_value = m
     m.insert.return_value = m
     m.execute.return_value = _make_result(data)
     return m
 
 
-# ── App setup (import after mocks are in place) ────────────────────────────────
+# ── App setup ─────────────────────────────────────────────────────────────────
 
 @pytest.fixture()
 def client(monkeypatch):
-    """Build a TestClient with auth and Supabase both mocked."""
-    # Patch get_user_id so every request appears to come from CREATOR_USER_ID
     monkeypatch.setattr("auth.get_user_id", lambda: CREATOR_USER_ID)
-
     from main import app
     return TestClient(app, raise_server_exceptions=True)
 
-
-# ── Helpers ────────────────────────────────────────────────────────────────────
 
 def _post(client, target=TARGET_TEAM_ID, requesting=REQUESTING_TEAM_ID):
     return client.post(
@@ -66,7 +60,6 @@ def _post(client, target=TARGET_TEAM_ID, requesting=REQUESTING_TEAM_ID):
 # ── Tests ──────────────────────────────────────────────────────────────────────
 
 def test_self_merge_rejected(client):
-    """Sending a merge request to your own team should return 400."""
     res = client.post(
         f"/teams/{REQUESTING_TEAM_ID}/merge-requests",
         json={"requesting_team_id": REQUESTING_TEAM_ID},
@@ -78,9 +71,7 @@ def test_self_merge_rejected(client):
 
 def test_requesting_team_not_found(client):
     with patch("routers.teams.supabase_admin") as mock_db:
-        mock_db.table.return_value.select.return_value.eq.return_value \
-            .maybe_single.return_value.execute.return_value = _make_result(None)
-
+        mock_db.table.return_value = _chainable_table([])
         res = _post(client)
     assert res.status_code == 404
     assert "Requesting team" in res.json()["detail"]
@@ -89,33 +80,18 @@ def test_requesting_team_not_found(client):
 def test_not_team_creator_forbidden(client):
     req_team_row = {"id": REQUESTING_TEAM_ID, "created_by": OTHER_USER_ID}
 
-    def table_side_effect(name):
-        m = MagicMock()
-        m.select.return_value = m
-        m.eq.return_value = m
-        m.maybe_single.return_value = m
-        m.execute.return_value = _make_result(req_team_row)
-        return m
-
     with patch("routers.teams.supabase_admin") as mock_db:
-        mock_db.table.side_effect = table_side_effect
+        mock_db.table.return_value = _chainable_table([req_team_row])
         res = _post(client)
     assert res.status_code == 403
 
 
 def test_target_team_not_found(client):
     req_team_row = {"id": REQUESTING_TEAM_ID, "created_by": CREATOR_USER_ID}
-
-    call_count = [0]
+    results = iter([[req_team_row], []])
 
     def table_side_effect(name):
-        m = MagicMock()
-        m.select.return_value = m
-        m.eq.return_value = m
-        m.maybe_single.return_value = m
-        call_count[0] += 1
-        # First call → requesting team found; second call → target team missing
-        m.execute.return_value = _make_result(req_team_row if call_count[0] == 1 else None)
+        m = _chainable_table(next(results))
         return m
 
     with patch("routers.teams.supabase_admin") as mock_db:
@@ -129,19 +105,10 @@ def test_duplicate_pending_request_rejected(client):
     req_team_row    = {"id": REQUESTING_TEAM_ID, "created_by": CREATOR_USER_ID}
     target_team_row = {"id": TARGET_TEAM_ID}
     existing_row    = {"id": "existing-uuid"}
-
-    results = iter([req_team_row, target_team_row, existing_row])
-
-    def table_side_effect(name):
-        m = MagicMock()
-        m.select.return_value = m
-        m.eq.return_value = m
-        m.maybe_single.return_value = m
-        m.execute.return_value = _make_result(next(results))
-        return m
+    results = iter([[req_team_row], [target_team_row], [existing_row]])
 
     with patch("routers.teams.supabase_admin") as mock_db:
-        mock_db.table.side_effect = table_side_effect
+        mock_db.table.side_effect = lambda _: _chainable_table(next(results))
         res = _post(client)
     assert res.status_code == 409
 
@@ -149,26 +116,10 @@ def test_duplicate_pending_request_rejected(client):
 def test_successful_merge_request(client):
     req_team_row    = {"id": REQUESTING_TEAM_ID, "created_by": CREATOR_USER_ID}
     target_team_row = {"id": TARGET_TEAM_ID}
-
-    results = iter([req_team_row, target_team_row, None])  # None = no existing request
-
-    call_count = [0]
-
-    def table_side_effect(name):
-        m = MagicMock()
-        m.select.return_value = m
-        m.eq.return_value = m
-        m.maybe_single.return_value = m
-        m.insert.return_value = m
-        call_count[0] += 1
-        if call_count[0] <= 3:
-            m.execute.return_value = _make_result(next(results))
-        else:
-            m.execute.return_value = _make_result([MERGE_REQUEST_ROW])
-        return m
+    results = iter([[req_team_row], [target_team_row], [], [MERGE_REQUEST_ROW]])
 
     with patch("routers.teams.supabase_admin") as mock_db:
-        mock_db.table.side_effect = table_side_effect
+        mock_db.table.side_effect = lambda _: _chainable_table(next(results))
         res = _post(client)
 
     assert res.status_code == 201

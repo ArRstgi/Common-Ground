@@ -26,12 +26,12 @@ async def create_merge_request(
         supabase_admin.table("teams")
         .select("id, created_by")
         .eq("id", requesting_team_id)
-        .maybe_single()
+        .limit(1)
         .execute()
     )
     if not req_team.data:
         raise HTTPException(status_code=404, detail="Requesting team not found.")
-    if req_team.data["created_by"] != user_id:
+    if req_team.data[0]["created_by"] != user_id:
         raise HTTPException(status_code=403, detail="You are not the creator of the requesting team.")
 
     # Target team must exist
@@ -39,7 +39,7 @@ async def create_merge_request(
         supabase_admin.table("teams")
         .select("id")
         .eq("id", team_id)
-        .maybe_single()
+        .limit(1)
         .execute()
     )
     if not target_team.data:
@@ -52,7 +52,7 @@ async def create_merge_request(
         .eq("requesting_team_id", requesting_team_id)
         .eq("target_team_id", team_id)
         .eq("status", "pending")
-        .maybe_single()
+        .limit(1)
         .execute()
     )
     if existing.data:
