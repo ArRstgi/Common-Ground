@@ -78,3 +78,17 @@ class TeamCreate(BaseModel):
 
 class TeamMemberUpdate(BaseModel):
     status: str  # "approved" | "rejected"
+
+
+# ── Merge Requests ────────────────────────────────────────────────────────────
+
+class MergeRequestCreate(BaseModel):
+    requesting_team_id: str
+
+
+class MergeRequestResponse(BaseModel):
+    id: str
+    requesting_team_id: str
+    target_team_id: str
+    status: str
+    created_at: datetime

@@ -14,6 +14,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import NavigationSidebar from '../components/NavigationSidebar';
 import { getClient } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../api/client';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -158,10 +159,10 @@ function MergeRequestCard({ request, currentMemberCount, maxSize, onApprove, onR
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
 
-async function fetchTeamDetail(teamId) {
+async function fetchTeamDetail(teamId, userId) {
   const sb = getClient();
 
-  // Team + survey title
+  // Team + survey id + title
   const { data: team, error: teamErr } = await sb
     .from('teams')
     .select('*, surveys(title)')
@@ -185,7 +186,22 @@ async function fetchTeamDetail(teamId) {
     .eq('status', 'pending');
   if (mergeErr) throw mergeErr;
 
-  return { team, members: members ?? [], mergeRequests: mergeRequests ?? [] };
+  // Find the current user's team in the same survey (to use as requesting_team_id)
+  let myTeamId = null;
+  if (userId && team?.survey_id) {
+    const { data: myMembership } = await sb
+      .from('team_members')
+      .select('team_id, teams!inner(survey_id, created_by)')
+      .eq('user_id', userId)
+      .eq('status', 'approved')
+      .eq('teams.survey_id', team.survey_id)
+      .maybeSingle();
+    if (myMembership) {
+      myTeamId = myMembership.team_id;
+    }
+  }
+
+  return { team, members: members ?? [], mergeRequests: mergeRequests ?? [], myTeamId };
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -195,9 +211,10 @@ export default function TeamDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [data, setData] = useState(null);       // { team, members, mergeRequests }
+  const [data, setData] = useState(null);       // { team, members, mergeRequests, myTeamId }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mergeError, setMergeError] = useState(null);
 
   // View mode: 'owner' | 'visitor' | 'pending'
   // Determined after data loads based on whether the current user created the team.
@@ -206,7 +223,7 @@ export default function TeamDetail() {
   useEffect(() => {
     if (!teamId) return;
     setLoading(true);
-    fetchTeamDetail(teamId)
+    fetchTeamDetail(teamId, user?.id)
       .then(result => {
         setData(result);
         const isOwner = result.team.created_by === user?.id;
@@ -247,7 +264,22 @@ export default function TeamDetail() {
   const capacityPct = (members.length / team.max_size) * 100;
   const isOwner = viewMode === 'owner';
 
-  // ── Merge-request handlers (optimistic UI; real API calls go here) ──────────
+  // ── Merge-request handlers ────────────────────────────────────────────────
+
+  async function handleSendMergeRequest() {
+    setMergeError(null);
+    const myTeamId = data?.myTeamId;
+    if (!myTeamId) {
+      setMergeError('You must be on a team in this survey to send a merge request.');
+      return;
+    }
+    try {
+      await api.post(`/teams/${teamId}/merge-requests`, { requesting_team_id: myTeamId });
+      setViewMode('pending');
+    } catch (err) {
+      setMergeError(err.message ?? 'Failed to send merge request.');
+    }
+  }
 
   function handleApproveMerge(reqId) {
     // TODO: POST /teams/merge-requests/{reqId}/approve
@@ -331,10 +363,13 @@ export default function TeamDetail() {
         )}
 
         {viewMode === 'visitor' && (
-          <Stack direction="row" spacing={1.25} sx={{ mb: 2 }}>
-            <Button variant="contained" onClick={() => setViewMode('pending')}>
-              Request to merge teams
-            </Button>
+          <Stack spacing={1} sx={{ mb: 2 }}>
+            <Stack direction="row" spacing={1.25}>
+              <Button variant="contained" onClick={handleSendMergeRequest}>
+                Request to merge teams
+              </Button>
+            </Stack>
+            {mergeError && <Alert severity="error" sx={{ fontSize: 13 }}>{mergeError}</Alert>}
           </Stack>
         )}
 
