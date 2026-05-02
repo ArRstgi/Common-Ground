@@ -20,7 +20,6 @@ import SearchIcon from '@mui/icons-material/Search';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
-import NavigationSidebar from '../components/NavigationSidebar';
 import { getClient } from '../lib/supabase';
 import { api } from '../api/client';
 
@@ -444,7 +443,6 @@ export default function TeamBrowser() {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'grey.100' }}>
-        <NavigationSidebar activeId="find-teams" />
         <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <CircularProgress />
         </Box>
@@ -455,7 +453,6 @@ export default function TeamBrowser() {
   if (error) {
     return (
       <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'grey.100' }}>
-        <NavigationSidebar activeId="find-teams" />
         <Box sx={{ flex: 1, p: '32px 36px' }}>
           <Alert severity="error">{error}</Alert>
         </Box>
@@ -470,7 +467,6 @@ export default function TeamBrowser() {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'grey.100' }}>
-      <NavigationSidebar activeId="find-teams" />
 
       <Box component="main" sx={{ flex: 1, p: '32px 36px', overflowY: 'auto' }}>
 

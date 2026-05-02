@@ -17,8 +17,6 @@ import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 
-import NavigationSidebar from "../components/NavigationSidebar";
-
 // ── Static seed data ───────────────────────────────────────────────────────────
 
 const INITIAL_QUESTIONS = [
@@ -163,7 +161,6 @@ export default function SurveyCreate() {
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
-            <NavigationSidebar activeId="surveys" />
 
             <Box component="main" sx={{ flex: 1, p: "32px 36px", maxWidth: 740 }}>
                 {/* Page header */}

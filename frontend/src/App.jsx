@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
-import NavigationSidebar from "./components/NavigationSidebar";
+import NavigationSidebar, { NAV_ID_BY_PATH } from "./components/NavigationSidebar";
 import Box from "@mui/material/Box";
 
 import Login        from "./pages/Login";
@@ -14,16 +14,10 @@ import Profile      from "./pages/Profile";
 import SurveyDetail from "./pages/SurveyDetails";
 
 
-const ROUTES_WITHOUT_SIDEBAR = ["/login", "/register"];
-
-const NAV_ID_BY_PATH = {
-    "/dashboard":  "dashboard",
-    "/surveys":    "surveys",
-    "/find-teams": "find-teams",
-    "/profile":    "profile",
-    "/surveycreate": "create-survey",
-    "/surveyjoin": "survey-join",
-};
+const ROUTES_WITHOUT_SIDEBAR = [
+  "/login", 
+  "/register",
+];
 
 export default function App() {
   const location = useLocation();
