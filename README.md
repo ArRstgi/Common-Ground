@@ -64,3 +64,11 @@ npm run dev
 The app will be available at `http://localhost:5173`.
 
 ---
+
+### 4. Run the tests
+
+```bash
+cd backend
+uv run pytest tests/ -v
+```
+

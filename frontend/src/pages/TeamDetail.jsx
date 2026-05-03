@@ -281,20 +281,28 @@ export default function TeamDetail() {
     }
   }
 
-  function handleApproveMerge(reqId) {
-    // TODO: POST /teams/merge-requests/{reqId}/approve
-    setData(prev => ({
-      ...prev,
-      mergeRequests: prev.mergeRequests.filter(r => r.id !== reqId),
-    }));
+  async function handleApproveMerge(reqId) {
+    try {
+      await api.post(`/teams/${teamId}/merge-requests/${reqId}/approve`);
+      setData(prev => ({
+        ...prev,
+        mergeRequests: prev.mergeRequests.filter(r => r.id !== reqId),
+      }));
+    } catch (err) {
+      setMergeError(err.message ?? 'Failed to approve merge request.');
+    }
   }
 
-  function handleRejectMerge(reqId) {
-    // TODO: POST /teams/merge-requests/{reqId}/reject
-    setData(prev => ({
-      ...prev,
-      mergeRequests: prev.mergeRequests.filter(r => r.id !== reqId),
-    }));
+  async function handleRejectMerge(reqId) {
+    try {
+      await api.post(`/teams/${teamId}/merge-requests/${reqId}/reject`);
+      setData(prev => ({
+        ...prev,
+        mergeRequests: prev.mergeRequests.filter(r => r.id !== reqId),
+      }));
+    } catch (err) {
+      setMergeError(err.message ?? 'Failed to reject merge request.');
+    }
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -403,6 +411,8 @@ export default function TeamDetail() {
                 {mergeRequests.length} pending
               </Typography>
             </Box>
+
+            {mergeError && <Alert severity="error" sx={{ fontSize: 13, mb: 1.5 }}>{mergeError}</Alert>}
 
             {mergeRequests.length === 0 ? (
               <Typography variant="body2" color="text.disabled" textAlign="center" py={2}>
