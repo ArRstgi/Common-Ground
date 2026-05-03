@@ -23,6 +23,7 @@ import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import NavigationSidebar from '../components/NavigationSidebar';
 import { getClient } from '../lib/supabase';
 import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -173,85 +174,6 @@ function TeamCard({ team, isMyTeam, matchPct, onView, onRequestMerge }) {
   );
 }
 
-const MOCK_RECOMMENDATIONS = [
-  {
-    id: 'rec-1',
-    type: 'person',
-    name: 'Jordan Kim',
-    members: [
-      { id: 'u-jk', name: 'Jordan Kim', school: 'Amherst College', major: 'Computer Science', gradYear: 2027 },
-    ],
-    maxSize: 4,
-    description: 'Looking for a team for the hackathon. Strong in full-stack dev and ML. Night-owl coder, prefer async communication.',
-    matchPct: 94,
-    spotsLeft: 3,
-  },
-  {
-    id: 'rec-2',
-    type: 'team',
-    name: 'The Debug Ducks',
-    members: [
-      { id: 'u-ms', name: 'Maya Singh', school: 'Hampshire College', major: 'Data Science', gradYear: 2026 },
-      { id: 'u-lo', name: 'Leo Ortega', school: 'Mount Holyoke', major: 'Statistics', gradYear: 2027 },
-    ],
-    maxSize: 4,
-    description: 'Working on a data visualization project for public health. Need 2 more members with frontend or design skills.',
-    matchPct: 87,
-    spotsLeft: 2,
-  },
-  {
-    id: 'rec-3',
-    type: 'person',
-    name: 'Sam Rivera',
-    members: [
-      { id: 'u-sr', name: 'Sam Rivera', school: 'Smith College', major: 'UI/UX Design', gradYear: 2026 },
-    ],
-    maxSize: 4,
-    description: 'Designer looking for an engineering team. Experienced with Figma and user research. Passionate about accessibility.',
-    matchPct: 79,
-    spotsLeft: 3,
-  },
-  {
-    id: 'rec-4',
-    type: 'team',
-    name: 'Circuit Breakers',
-    members: [
-      { id: 'u-ec', name: 'Ethan Cole', school: 'Amherst College', major: 'Physics', gradYear: 2025 },
-      { id: 'u-pw', name: 'Priya Wen', school: 'UMass Amherst', major: 'Electrical Engineering', gradYear: 2026 },
-      { id: 'u-nb', name: 'Noah Brooks', school: 'UMass Amherst', major: 'Computer Engineering', gradYear: 2027 },
-    ],
-    maxSize: 5,
-    description: 'Hardware + software team building an IoT sensor platform. Strong embedded systems background.',
-    matchPct: 68,
-    spotsLeft: 2,
-  },
-  {
-    id: 'rec-5',
-    type: 'person',
-    name: 'Ava Thompson',
-    members: [
-      { id: 'u-at', name: 'Ava Thompson', school: 'Hampshire College', major: 'Cognitive Science', gradYear: 2027 },
-    ],
-    maxSize: 4,
-    description: 'Interested in NLP and conversational AI. Also enjoys product management and bridging the gap between users and devs.',
-    matchPct: 61,
-    spotsLeft: 3,
-  },
-  {
-    id: 'rec-6',
-    type: 'team',
-    name: 'Green Stack',
-    members: [
-      { id: 'u-fw', name: 'Fatima Wali', school: 'Mount Holyoke', major: 'Environmental Science', gradYear: 2026 },
-      { id: 'u-cl', name: 'Chris Lau', school: 'Amherst College', major: 'Computer Science', gradYear: 2026 },
-    ],
-    maxSize: 4,
-    description: 'Building a sustainability tracking app. Combining env science domain knowledge with tech.',
-    matchPct: 53,
-    spotsLeft: 2,
-  },
-];
-
 // Returns a MUI color string based on a percentage value
 function matchColor(pct) {
   if (pct >= 85) return 'success';
@@ -382,11 +304,9 @@ function RecommendedCard({ rec, rank, onAction }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-// For demo: treat the first team as "my team" (no real auth in demo mode)
-const DEMO_MY_TEAM_INDEX = 0;
-
 export default function TeamBrowser() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [data, setData]         = useState(null);
   const [loading, setLoading]   = useState(true);
@@ -414,7 +334,9 @@ export default function TeamBrowser() {
       .finally(() => setRecLoading(false));
   }, [data?.survey?.id]);
 
-  const myTeam = data?.teams[DEMO_MY_TEAM_INDEX] ?? null;
+  const myTeam = data?.teams.find(t =>
+    t.team_members.some(m => m.user_id === user?.id)
+  ) ?? null;
 
   const filtered = useMemo(() => {
     if (!data) return [];
