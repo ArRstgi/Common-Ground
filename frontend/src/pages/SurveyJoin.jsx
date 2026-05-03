@@ -9,8 +9,6 @@ import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
 
-import NavigationSidebar from "../components/NavigationSidebar";
-
 // ── Static data ────────────────────────────────────────────────────────────────
 
 const RECENT_SURVEYS = [
@@ -43,7 +41,6 @@ export default function SurveyJoin() {
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
-            <NavigationSidebar activeId="surveys" />
 
             <Box
                 component="main"

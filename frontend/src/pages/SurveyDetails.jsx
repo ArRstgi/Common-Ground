@@ -14,8 +14,6 @@ import Radio from "@mui/material/Radio";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CircleIcon from "@mui/icons-material/Circle";
 
-import NavigationSidebar from "../components/NavigationSidebar";
-
 // ── Static survey data ─────────────────────────────────────────────────────────
 
 const SURVEY = {
@@ -174,7 +172,6 @@ export default function SurveyDetail() {
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
-            <NavigationSidebar activeId="surveys" />
 
             <Box component="main" sx={{ flex: 1, p: "32px 36px", maxWidth: 680 }}>
                 {/* Back link */}

@@ -13,8 +13,6 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import Link from "@mui/material/Link";
 
-import NavigationSidebar from "../components/NavigationSidebar";
-
 // ── Static data ────────────────────────────────────────────────────────────────
 
 const SCHOOLS = [
@@ -147,7 +145,6 @@ export default function Profile() {
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
-            <NavigationSidebar activeId="profile" />
 
             <Box component="main" sx={{ flex: 1, p: "32px 36px", maxWidth: 680 }}>
                 <Typography variant="h6" fontWeight={600} letterSpacing="-0.02em" mb={3.5}>
