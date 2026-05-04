@@ -1,4 +1,5 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+import uuid
 from typing import Optional
 from datetime import datetime
 
@@ -35,37 +36,37 @@ class ProfileUpdate(BaseModel):
 
 # ── Surveys ───────────────────────────────────────────────────────────────────
 
-class AnswerOptionCreate(BaseModel):
-    option_text: str
-    order_index: int = 0
-
-
-class QuestionCreate(BaseModel):
-    prompt: str
-    question_type: str  # "multiple_choice" | "short_answer"
-    order_index: int = 0
-    answer_options: list[AnswerOptionCreate] = []
-
-
-class SurveyCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-    deadline: Optional[datetime] = None
-    questions: list[QuestionCreate] = []
-
-
-class SurveyJoinByCode(BaseModel):
+class AnswerOptionIn(BaseModel):
+    option_text: str = Field(..., min_length=1, max_length=500)
+    order_index: int = Field(..., ge=0)
+ 
+ 
+class QuestionIn(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=1000)
+    question_type: str = Field(..., pattern="^(multiple_choice|short_answer)$")
+    order_index: int = Field(..., ge=0)
+    answer_options: list[AnswerOptionIn] = Field(default_factory=list)
+ 
+ 
+class SurveyCreateRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=300)
+    description: str | None = Field(None, max_length=2000)
+    deadline: str | None = Field(
+        None,
+        description="ISO 8601 date string, e.g. '2026-06-01'. Stored as midnight UTC.",
+    )
+    # TODO: replace placeholder with real auth user ID
+    created_by: uuid.UUID = Field(
+        default=uuid.UUID("00000000-0000-0000-0000-000000000000")
+    )
+    questions: list[QuestionIn] = Field(..., min_length=1)
+ 
+ 
+class SurveyCreateResponse(BaseModel):
+    id: uuid.UUID
     join_code: str
+    created_at: datetime
 
-
-class SurveyResponse(BaseModel):
-    question_id: str
-    answer_option_id: Optional[str] = None
-    answer_text: Optional[str] = None
-
-
-class SurveySubmit(BaseModel):
-    responses: list[SurveyResponse]
 
 
 # ── Teams ─────────────────────────────────────────────────────────────────────

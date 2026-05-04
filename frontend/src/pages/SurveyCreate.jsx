@@ -1,168 +1,267 @@
 import { useState } from "react";
 
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Paper from "@mui/material/Paper";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
+import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import Paper from "@mui/material/Paper";
+import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Collapse from "@mui/material/Collapse";
-import InputAdornment from "@mui/material/InputAdornment";
 import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
 
 import AddIcon from "@mui/icons-material/Add";
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { QuestionCard } from "../components/SurveyQuestionCard";
 
-// ── Static seed data ───────────────────────────────────────────────────────────
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 
-const INITIAL_QUESTIONS = [
-    {
-        id: 1,
-        prompt: "What is your preferred working style?",
-        type: "mc",
-        options: [
-            "Plan ahead and divide early",
-            "Flexible, iterative collaboration",
-            "Work independently then sync",
-        ],
-    },
-    {
-        id: 2,
-        prompt: "When are you generally available to meet?",
-        type: "mc",
-        options: ["Weekday mornings", "Weekday evenings", "Weekend afternoons"],
-    },
-    {
-        id: 3,
-        prompt: "Describe your technical background briefly",
-        type: "sa",
-        options: [],
-    },
-];
+const MC_MIN_OPTIONS = 2;
+const MC_MAX_OPTIONS = 6;
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
+// ── Success screen ─────────────────────────────────────────────────────────────
 
-function QuestionCard({ question, index, onDelete }) {
-    return (
-        <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
-            {/* Header */}
-            <Box
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.25,
-                    px: 1.75,
-                    py: 1.5,
-                    bgcolor: "background.paper",
-                    borderBottom: "1px solid",
-                    borderColor: "divider",
-                }}
-            >
-                <Typography
-                    variant="caption"
-                    fontFamily="monospace"
-                    sx={{
-                        bgcolor: "grey.100",
-                        px: 0.75,
-                        py: 0.25,
-                        borderRadius: 1,
-                        color: "text.disabled",
-                    }}
-                >
-                    Q{index + 1}
-                </Typography>
-                <Typography variant="body2" fontWeight={500} sx={{ flex: 1 }}>
-                    {question.prompt}
-                </Typography>
-                <Typography
-                    variant="caption"
-                    fontFamily="monospace"
-                    sx={{
-                        bgcolor: "grey.100",
-                        px: 1,
-                        py: 0.25,
-                        borderRadius: 1,
-                        color: "text.disabled",
-                    }}
-                >
-                    {question.type === "mc" ? "multiple choice" : "short answer"}
-                </Typography>
-                <IconButton size="small" onClick={() => onDelete(question.id)} sx={{ color: "text.disabled", "&:hover": { color: "error.main" } }}>
-                    <CloseIcon fontSize="small" />
-                </IconButton>
-            </Box>
-
-            {/* Options */}
-            {question.options.length > 0 && (
-                <Box sx={{ px: 1.75, py: 1.25, display: "flex", flexWrap: "wrap", gap: 0.75, bgcolor: "grey.50" }}>
-                    {question.options.map((opt) => (
-                        <Chip key={opt} label={opt} size="small" variant="outlined" />
-                    ))}
-                </Box>
-            )}
-        </Paper>
-    );
-}
-
-// ── Page ───────────────────────────────────────────────────────────────────────
-
-export default function SurveyCreate() {
-    const [questions,  setQuestions]  = useState(INITIAL_QUESTIONS);
-    const [addingQ,    setAddingQ]    = useState(false);
-    const [qType,      setQType]      = useState("mc");
-    const [newPrompt,  setNewPrompt]  = useState("");
-    const [newOptions, setNewOptions] = useState(["", ""]);
-    const [copied,     setCopied]     = useState(false);
-
-    // Form fields
-    const [title,    setTitle]    = useState("CS 320 Project Groups");
-    const [desc,     setDesc]     = useState("Find teammates for the semester-long software engineering project.");
-    const [deadline, setDeadline] = useState("2026-04-20");
-    const JOIN_CODE = "CS320ABC";
-
-    function handleDeleteQuestion(id) {
-        setQuestions((qs) => qs.filter((q) => q.id !== id));
-    }
-
-    function handleAddOption() {
-        setNewOptions((opts) => [...opts, ""]);
-    }
-
-    function handleOptionChange(index, value) {
-        setNewOptions((opts) => opts.map((o, i) => (i === index ? value : o)));
-    }
-
-    function handleRemoveOption(index) {
-        setNewOptions((opts) => opts.filter((_, i) => i !== index));
-    }
-
-    function handleSaveQuestion() {
-        if (!newPrompt.trim()) return;
-        const options = qType === "mc" ? newOptions.filter(Boolean) : [];
-        setQuestions((qs) => [
-            ...qs,
-            { id: Date.now(), prompt: newPrompt.trim(), type: qType, options },
-        ]);
-        setNewPrompt("");
-        setNewOptions(["", ""]);
-        setQType("mc");
-        setAddingQ(false);
-    }
+function SuccessScreen({ joinCode, onCreateAnother }) {
+    const [copied, setCopied] = useState(false);
 
     function handleCopy() {
-        navigator.clipboard.writeText(JOIN_CODE);
+        navigator.clipboard.writeText(joinCode);
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
     }
 
     return (
-        <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
+        <Box
+            sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: "60vh",
+                gap: 2,
+                textAlign: "center",
+            }}
+        >
+            <TaskAltIcon sx={{ fontSize: 56, color: "success.main" }} />
+            <Typography variant="h6" fontWeight={600}>
+                Survey published!
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+                Share this join code with participants so they can find and complete your survey.
+            </Typography>
 
+            <Paper variant="outlined" sx={{ px: 3, py: 2, borderRadius: 2, mt: 1 }}>
+                <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                    Join code
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography
+                        variant="h5"
+                        fontFamily="monospace"
+                        fontWeight={700}
+                        letterSpacing="0.15em"
+                    >
+                        {joinCode}
+                    </Typography>
+                    <Tooltip title={copied ? "Copied!" : "Copy"} placement="top">
+                        <IconButton size="small" onClick={handleCopy}>
+                            <ContentCopyIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            </Paper>
+
+            <Button variant="outlined" onClick={onCreateAnother} sx={{ mt: 1 }}>
+                Create another survey
+            </Button>
+        </Box>
+    );
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────────
+
+function freshForm() {
+    return { title: "", desc: "", deadline: "" };
+}
+
+function freshQuestion() {
+    return { prompt: "", type: "mc", options: ["", ""] };
+}
+
+export default function SurveyCreate() {
+    // Survey meta
+    const [form, setForm] = useState(freshForm());
+
+    // Questions list
+    const [questions, setQuestions] = useState([]);
+
+    // New-question panel
+    const [addingQ, setAddingQ] = useState(false);
+    const [newQ, setNewQ] = useState(freshQuestion());
+
+    // UI state
+    const [copied, setCopied] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState("");
+    const [successCode, setSuccessCode] = useState(null); // non-null → show success screen
+
+    // ── Derived ──────────────────────────────────────────────────────────────
+
+    const canAddOption = newQ.options.length < MC_MAX_OPTIONS;
+    const canRemoveOption = newQ.options.length > MC_MIN_OPTIONS;
+
+    // ── Handlers: survey meta ─────────────────────────────────────────────────
+
+    function handleFormChange(field) {
+        return (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+    }
+
+    // ── Handlers: question list ───────────────────────────────────────────────
+
+    function handleDeleteQuestion(id) {
+        setQuestions((qs) => qs.filter((q) => q.id !== id));
+    }
+
+    // ── Handlers: new-question panel ──────────────────────────────────────────
+
+    function handleQTypeChange(_, val) {
+        if (!val) return;
+        setNewQ((q) => ({
+            ...q,
+            type: val,
+            options: val === "mc" ? ["", ""] : [],
+        }));
+    }
+
+    function handleAddOption() {
+        if (!canAddOption) return;
+        setNewQ((q) => ({ ...q, options: [...q.options, ""] }));
+    }
+
+    function handleOptionChange(index, value) {
+        setNewQ((q) => ({
+            ...q,
+            options: q.options.map((o, i) => (i === index ? value : o)),
+        }));
+    }
+
+    function handleRemoveOption(index) {
+        if (!canRemoveOption) return;
+        setNewQ((q) => ({ ...q, options: q.options.filter((_, i) => i !== index) }));
+    }
+
+    function handleSaveQuestion() {
+        if (!newQ.prompt.trim()) return;
+
+        if (newQ.type === "mc") {
+            const filled = newQ.options.filter((o) => o.trim());
+            if (filled.length < MC_MIN_OPTIONS) return;
+        }
+
+        const options =
+            newQ.type === "mc" ? newQ.options.filter((o) => o.trim()) : [];
+
+        setQuestions((qs) => [
+            ...qs,
+            { id: Date.now(), prompt: newQ.prompt.trim(), type: newQ.type, options },
+        ]);
+        setNewQ(freshQuestion());
+        setAddingQ(false);
+    }
+
+    function handleCancelAdd() {
+        setNewQ(freshQuestion());
+        setAddingQ(false);
+    }
+
+    // ── Submission ────────────────────────────────────────────────────────────
+
+    async function handleSubmit() {
+        setError("");
+
+        if (!form.title.trim()) {
+            setError("Please enter a survey title.");
+            return;
+        }
+        if (questions.length === 0) {
+            setError("Please add at least one question.");
+            return;
+        }
+
+        const payload = {
+            title: form.title.trim(),
+            description: form.desc.trim() || null,
+            deadline: form.deadline || null,
+            // TODO: replace with real user ID from auth context
+            created_by: "00000000-0000-0000-0000-000000000000",
+            questions: questions.map((q, i) => ({
+                prompt: q.prompt,
+                question_type: q.type === "mc" ? "multiple_choice" : "short_answer",
+                order_index: i,
+                answer_options: q.options.map((opt, j) => ({
+                    option_text: opt,
+                    order_index: j,
+                })),
+            })),
+        };
+
+        try {
+            setSubmitting(true);
+            const res = await fetch(`${API_BASE}/surveys/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.detail ?? `Server error ${res.status}`);
+            }
+
+            const data = await res.json();
+            setSuccessCode(data.join_code);
+        } catch (err) {
+            setError(err.message || "Something went wrong. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
+    }
+
+    function handleCreateAnother() {
+        setForm(freshForm());
+        setQuestions([]);
+        setNewQ(freshQuestion());
+        setAddingQ(false);
+        setError("");
+        setSuccessCode(null);
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────────
+
+    if (successCode) {
+        return (
+            <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
+                <Box component="main" sx={{ flex: 1, p: "32px 36px", maxWidth: 740 }}>
+                    <SuccessScreen
+                        joinCode={successCode}
+                        onCreateAnother={handleCreateAnother}
+                    />
+                </Box>
+            </Box>
+        );
+    }
+
+    return (
+        <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
             <Box component="main" sx={{ flex: 1, p: "32px 36px", maxWidth: 740 }}>
+
                 {/* Page header */}
                 <Box mb={3.5}>
                     <Typography variant="h6" fontWeight={600} letterSpacing="-0.02em">
@@ -173,9 +272,22 @@ export default function SurveyCreate() {
                     </Typography>
                 </Box>
 
-                {/* Survey details */}
+                {/* Error banner */}
+                <Collapse in={!!error}>
+                    <Alert severity="error" onClose={() => setError("")} sx={{ mb: 2 }}>
+                        {error}
+                    </Alert>
+                </Collapse>
+
+                {/* ── Survey details ── */}
                 <Paper variant="outlined" sx={{ p: 3, mb: 2, borderRadius: 3 }}>
-                    <Typography variant="caption" fontWeight={600} letterSpacing="0.02em" display="block" mb={2.25}>
+                    <Typography
+                        variant="caption"
+                        fontWeight={600}
+                        letterSpacing="0.02em"
+                        display="block"
+                        mb={2.25}
+                    >
                         SURVEY DETAILS
                     </Typography>
 
@@ -183,20 +295,23 @@ export default function SurveyCreate() {
                         label="Title"
                         size="small"
                         fullWidth
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                        required
+                        value={form.title}
+                        onChange={handleFormChange("title")}
                         sx={{ mb: 2 }}
                     />
+
                     <TextField
                         label="Description"
                         size="small"
                         fullWidth
                         multiline
                         minRows={2}
-                        value={desc}
-                        onChange={(e) => setDesc(e.target.value)}
+                        value={form.desc}
+                        onChange={handleFormChange("desc")}
                         sx={{ mb: 2 }}
                         slotProps={{ inputLabel: { shrink: true } }}
+                        placeholder="Describe what this survey is for (optional)"
                     />
 
                     <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
@@ -206,48 +321,44 @@ export default function SurveyCreate() {
                                 size="small"
                                 type="date"
                                 fullWidth
-                                value={deadline}
-                                onChange={(e) => setDeadline(e.target.value)}
+                                value={form.deadline}
+                                onChange={handleFormChange("deadline")}
                                 slotProps={{ inputLabel: { shrink: true } }}
                             />
-                            <Typography variant="caption" color="text.disabled" mt={0.5} display="block">
-                                Unmatched users will be auto-assigned after this date
-                            </Typography>
-                        </Box>
-                        <Box>
-                            <TextField
-                                label="Join code"
-                                size="small"
-                                fullWidth
-                                value={JOIN_CODE}
-                                slotProps={{
-                                    input: {
-                                        readOnly: true,
-                                        sx: { fontFamily: "monospace", fontWeight: 500, letterSpacing: "0.1em" },
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <Tooltip title={copied ? "Copied!" : "Copy"} placement="top">
-                                                    <IconButton size="small" onClick={handleCopy}>
-                                                        <ContentCopyIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </InputAdornment>
-                                        ),
-                                    },
-                                }}
-                            />
-                            <Typography variant="caption" color="text.disabled" mt={0.5} display="block">
-                                Share this with participants
+                            <Typography
+                                variant="caption"
+                                color="text.disabled"
+                                mt={0.5}
+                                display="block"
+                            >
+                                (Optional)
                             </Typography>
                         </Box>
                     </Box>
                 </Paper>
 
-                {/* Questions */}
+                {/* ── Questions ── */}
                 <Paper variant="outlined" sx={{ p: 3, mb: 2, borderRadius: 3 }}>
-                    <Typography variant="caption" fontWeight={600} letterSpacing="0.02em" display="block" mb={2.25}>
+                    <Typography
+                        variant="caption"
+                        fontWeight={600}
+                        letterSpacing="0.02em"
+                        display="block"
+                        mb={2.25}
+                    >
                         QUESTIONS
                     </Typography>
+
+                    {questions.length === 0 && !addingQ && (
+                        <Typography
+                            variant="body2"
+                            color="text.disabled"
+                            textAlign="center"
+                            py={2}
+                        >
+                            No questions yet - add one below.
+                        </Typography>
+                    )}
 
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 1.5 }}>
                         {questions.map((q, i) => (
@@ -269,28 +380,38 @@ export default function SurveyCreate() {
                             variant="outlined"
                             color="inherit"
                             sx={{
-                                mt: 0.5,
+                                mt: questions.length > 0 ? 0.5 : 0,
                                 borderStyle: "dashed",
                                 color: "text.disabled",
                                 borderColor: "divider",
-                                "&:hover": { borderColor: "primary.main", color: "primary.main", borderStyle: "dashed" },
+                                "&:hover": {
+                                    borderColor: "primary.main",
+                                    color: "primary.main",
+                                    borderStyle: "dashed",
+                                },
                             }}
                         >
                             Add a question
                         </Button>
                     )}
 
-                    {/* New question form */}
+                    {/* New-question form */}
                     <Collapse in={addingQ}>
                         <Paper
                             variant="outlined"
-                            sx={{ p: 2, mt: 1.5, borderColor: "primary.main", bgcolor: "primary.50", borderRadius: 2 }}
+                            sx={{
+                                p: 2,
+                                mt: 1.5,
+                                borderColor: "primary.main",
+                                bgcolor: "primary.50",
+                                borderRadius: 2,
+                            }}
                         >
                             {/* Type toggle */}
                             <ToggleButtonGroup
-                                value={qType}
+                                value={newQ.type}
                                 exclusive
-                                onChange={(_, val) => val && setQType(val)}
+                                onChange={handleQTypeChange}
                                 size="small"
                                 sx={{ mb: 2 }}
                             >
@@ -303,42 +424,105 @@ export default function SurveyCreate() {
                                 size="small"
                                 fullWidth
                                 placeholder="e.g. What is your experience level?"
-                                value={newPrompt}
-                                onChange={(e) => setNewPrompt(e.target.value)}
+                                value={newQ.prompt}
+                                onChange={(e) =>
+                                    setNewQ((q) => ({ ...q, prompt: e.target.value }))
+                                }
                                 sx={{ mb: 2 }}
                             />
 
                             {/* Options (MC only) */}
-                            <Collapse in={qType === "mc"}>
-                                <Typography variant="caption" fontWeight={500} color="text.secondary" display="block" mb={1}>
-                                    Answer options
+                            <Collapse in={newQ.type === "mc"}>
+                                <Typography
+                                    variant="caption"
+                                    fontWeight={500}
+                                    color="text.secondary"
+                                    display="block"
+                                    mb={1}
+                                >
+                                    Answer options ({MC_MIN_OPTIONS}–{MC_MAX_OPTIONS})
                                 </Typography>
-                                <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 1 }}>
-                                    {newOptions.map((opt, i) => (
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 1,
+                                        mb: 1,
+                                    }}
+                                >
+                                    {newQ.options.map((opt, i) => (
                                         <Box key={i} sx={{ display: "flex", gap: 1 }}>
                                             <TextField
                                                 size="small"
                                                 fullWidth
                                                 placeholder={`Option ${i + 1}`}
                                                 value={opt}
-                                                onChange={(e) => handleOptionChange(i, e.target.value)}
+                                                onChange={(e) =>
+                                                    handleOptionChange(i, e.target.value)
+                                                }
                                             />
-                                            <IconButton size="small" onClick={() => handleRemoveOption(i)}>
-                                                <CloseIcon fontSize="small" />
-                                            </IconButton>
+                                            <Tooltip
+                                                title={
+                                                    canRemoveOption
+                                                        ? "Remove option"
+                                                        : `Minimum ${MC_MIN_OPTIONS} options`
+                                                }
+                                                placement="top"
+                                            >
+                                                <span>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleRemoveOption(i)}
+                                                        disabled={!canRemoveOption}
+                                                    >
+                                                        <CloseIcon fontSize="small" />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
                                         </Box>
                                     ))}
                                 </Box>
-                                <Button size="small" onClick={handleAddOption} startIcon={<AddIcon />}>
-                                    Add option
-                                </Button>
+                                <Tooltip
+                                    title={
+                                        canAddOption
+                                            ? ""
+                                            : `Maximum ${MC_MAX_OPTIONS} options`
+                                    }
+                                    placement="top"
+                                >
+                                    <span>
+                                        <Button
+                                            size="small"
+                                            onClick={handleAddOption}
+                                            startIcon={<AddIcon />}
+                                            disabled={!canAddOption}
+                                        >
+                                            Add option
+                                        </Button>
+                                    </span>
+                                </Tooltip>
                             </Collapse>
 
                             <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-                                <Button variant="outlined" color="inherit" size="small" onClick={() => setAddingQ(false)}>
+                                <Button
+                                    variant="outlined"
+                                    color="inherit"
+                                    size="small"
+                                    onClick={handleCancelAdd}
+                                >
                                     Cancel
                                 </Button>
-                                <Button variant="contained" size="small" onClick={handleSaveQuestion}>
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={handleSaveQuestion}
+                                    disabled={
+                                        !newQ.prompt.trim() ||
+                                        (newQ.type === "mc" &&
+                                            newQ.options.filter((o) => o.trim()).length <
+                                                MC_MIN_OPTIONS)
+                                    }
+                                >
                                     Add question
                                 </Button>
                             </Box>
@@ -346,15 +530,20 @@ export default function SurveyCreate() {
                     </Collapse>
                 </Paper>
 
-                {/* Form actions */}
+                {/* ── Form actions ── */}
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.25, mt: 1 }}>
-                    <Button variant="outlined" color="inherit" sx={{ color: "text.secondary" }}>
-                        Save draft
-                    </Button>
-                    <Button variant="contained">
-                        Publish survey
+                    <Button
+                        variant="contained"
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        startIcon={
+                            submitting ? <CircularProgress size={16} color="inherit" /> : null
+                        }
+                    >
+                        {submitting ? "Publishing…" : "Publish survey"}
                     </Button>
                 </Box>
+
             </Box>
         </Box>
     );
