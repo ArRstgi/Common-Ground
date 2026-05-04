@@ -11,7 +11,6 @@ import Stack from '@mui/material/Stack';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import NavigationSidebar from '../components/NavigationSidebar';
 import { getClient } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
@@ -238,7 +237,6 @@ export default function TeamDetail() {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'grey.100' }}>
-        <NavigationSidebar activeId="find-teams" />
         <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <CircularProgress />
         </Box>
@@ -249,7 +247,6 @@ export default function TeamDetail() {
   if (error) {
     return (
       <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'grey.100' }}>
-        <NavigationSidebar activeId="find-teams" />
         <Box sx={{ flex: 1, p: '32px 36px' }}>
           <Alert severity="error">{error}</Alert>
         </Box>
@@ -309,7 +306,6 @@ export default function TeamDetail() {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'grey.100' }}>
-      <NavigationSidebar activeId="find-teams" />
 
       <Box component="main" sx={{ flex: 1, p: '32px 36px', maxWidth: 680 }}>
 

@@ -21,13 +21,15 @@ const DRAWER_WIDTH = 220;
 
 const NAV_ITEMS = [
     { id: 'dashboard',  label: 'Dashboard',  href: '/dashboard',  icon: <DashboardOutlinedIcon fontSize="small" /> },
-    // TODO: make this go to a "My Surveys" page rather than surveydetail
-    { id: 'surveys',    label: 'My Surveys', href: '/surveydetail',    icon: <PollOutlinedIcon fontSize="small" />     },
+    { id: 'survey-detail',    label: 'My Surveys', href: '/surveydetail',    icon: <PollOutlinedIcon fontSize="small" />  },
     { id: 'find-teams', label: 'Find Teams', href: '/teams',      icon: <GroupsOutlinedIcon fontSize="small" />  },
     { id: 'profile',    label: 'Profile',    href: '/profile',    icon: <Person2OutlinedIcon fontSize="small" />   },
     { id: 'create-survey',    label: 'Create Survey',    href: '/surveycreate',    icon: <CircleIcon fontSize="small" />   },
     { id: 'survey-join',    label: 'Join Survey',    href: '/surveyjoin',    icon: <CircleIcon fontSize="small" />   },
 ];
+
+export const NAV_ID_BY_PATH = {};
+NAV_ITEMS.forEach((item) => NAV_ID_BY_PATH[item.href] = item.id);
 
 const USER = {
     initials: 'AC',
@@ -42,7 +44,6 @@ const USER = {
  *
  * Props:
  *   activeId   {string}    – ID of the currently active nav item.
- *                            One of: 'dashboard' | 'surveys' | 'find-teams' | 'profile'
  *   onNavigate {function}  – Optional callback: (id) => void
  *                            Called when a nav item is clicked.
  *                            Use this to update activeId in the parent.

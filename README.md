@@ -72,3 +72,28 @@ cd backend
 uv run pytest tests/ -v
 ```
 
+## Using Supabase Locally
+
+1. Make sure to `npm install` in frontend and `uv sync` in backend.
+
+2. Run `npx supabase status` and pay attention to the Authentication Keys section.
+
+3. Add an .env.local file to `backend` folder.
+```
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_PUBLISHABLE_KEY=<Publishable Key from supabase status>
+SUPABASE_SECRET_KEY=<Secret Key from supabase status>
+```
+
+4. Add an .env.local file to `frontend` folder.
+```
+VITE_API_URL=http://localhost:8000
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_PUBLISHABLE_KEY=<Publishable Key from supabase status>
+```
+
+5. Start the local Supabase instance: `npx supabase start`
+
+6. Reset the database: `npx supabase db reset`
+
+---
