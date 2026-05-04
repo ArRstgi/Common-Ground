@@ -20,8 +20,9 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { QuestionCard } from "../components/SurveyQuestionCard";
+import { useAuth } from "../context/AuthContext";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 const MC_MIN_OPTIONS = 2;
 const MC_MAX_OPTIONS = 6;
@@ -46,7 +47,7 @@ function SuccessScreen({ joinCode, onCreateAnother }) {
                 justifyContent: "center",
                 minHeight: "60vh",
                 gap: 2,
-                textAlign: "center",
+                textalign: "center",
             }}
         >
             <TaskAltIcon sx={{ fontSize: 56, color: "success.main" }} />
@@ -183,7 +184,7 @@ export default function SurveyCreate() {
 
     // ── Submission ────────────────────────────────────────────────────────────
 
-    async function handleSubmit() {
+    async function handleSubmit(user_id) {
         setError("");
 
         if (!form.title.trim()) {
@@ -199,8 +200,7 @@ export default function SurveyCreate() {
             title: form.title.trim(),
             description: form.desc.trim() || null,
             deadline: form.deadline || null,
-            // TODO: replace with real user ID from auth context
-            created_by: "00000000-0000-0000-0000-000000000000",
+            created_by: user_id,
             questions: questions.map((q, i) => ({
                 prompt: q.prompt,
                 question_type: q.type === "mc" ? "multiple_choice" : "short_answer",
@@ -257,6 +257,8 @@ export default function SurveyCreate() {
             </Box>
         );
     }
+
+    const { user } = useAuth();
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
@@ -353,7 +355,7 @@ export default function SurveyCreate() {
                         <Typography
                             variant="body2"
                             color="text.disabled"
-                            textAlign="center"
+                            textalign="center"
                             py={2}
                         >
                             No questions yet - add one below.
@@ -534,7 +536,7 @@ export default function SurveyCreate() {
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.25, mt: 1 }}>
                     <Button
                         variant="contained"
-                        onClick={handleSubmit}
+                        onClick={() => handleSubmit(user.id)}
                         disabled={submitting}
                         startIcon={
                             submitting ? <CircularProgress size={16} color="inherit" /> : null

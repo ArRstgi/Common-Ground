@@ -5,7 +5,7 @@ from datetime import datetime, timezone
  
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from db import supabase
+from supabase import create_client, Client
 
 from models.schemas import AnswerOptionIn, QuestionIn, SurveyCreateRequest, SurveyCreateResponse
  
@@ -15,6 +15,8 @@ router = APIRouter(prefix="/surveys", tags=["surveys"])
 
 # ── Supabase client ────────────────────────────────────────────────────────────
  
+def get_supabase() -> Client:
+    return create_client(settings.supabase_url, settings.supabase_secret_key)
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
  
@@ -24,7 +26,7 @@ def _generate_join_code(length: int = 8) -> str:
     return "".join(random.choices(alphabet, k=length))
  
  
-async def _unique_join_code() -> str:
+async def _unique_join_code(supabase: Client) -> str:
     """
     Generate a join code that does not already exist in the surveys table.
     Retries up to 10 times before raising.
@@ -94,7 +96,8 @@ async def create_survey(body: SurveyCreateRequest):
     """
     _validate_questions(body.questions)
  
-    join_code = await _unique_join_code()
+    supabase = get_supabase()
+    join_code = await _unique_join_code(supabase)
     survey_id = str(uuid.uuid4())
  
     # ── 1. Insert survey ───────────────────────────────────────────────────────
