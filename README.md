@@ -63,7 +63,16 @@ npm run dev
 
 The app will be available at `http://localhost:5173`.
 
-### Using Supabase Locally
+---
+
+### 4. Run the tests
+
+```bash
+cd backend
+uv run pytest tests/ -v
+```
+
+## Using Supabase Locally
 
 1. Make sure to `npm install` in frontend and `uv sync` in backend.
 

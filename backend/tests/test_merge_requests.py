@@ -1,5 +1,8 @@
 """
-Simple unit tests for POST /teams/{team_id}/merge-requests.
+Simple unit tests for the merge-request endpoints:
+  POST /teams/{team_id}/merge-requests
+  POST /teams/{team_id}/merge-requests/{rid}/approve
+  POST /teams/{team_id}/merge-requests/{rid}/reject
 
 Uses FastAPI's TestClient and mocks Supabase calls so no live DB is needed.
 """
@@ -30,12 +33,13 @@ def _make_result(data):
 
 
 def _chainable_table(data):
-    """Return a mock table that chains select/eq/limit/insert and returns data on execute()."""
+    """Return a mock table that chains select/eq/limit/insert/update and returns data on execute()."""
     m = MagicMock()
     m.select.return_value = m
     m.eq.return_value = m
     m.limit.return_value = m
     m.insert.return_value = m
+    m.update.return_value = m
     m.execute.return_value = _make_result(data)
     return m
 
@@ -127,3 +131,113 @@ def test_successful_merge_request(client):
     assert body["requesting_team_id"] == REQUESTING_TEAM_ID
     assert body["target_team_id"]     == TARGET_TEAM_ID
     assert body["status"]             == "pending"
+
+
+MERGE_REQUEST_ID = MERGE_REQUEST_ROW["id"]
+
+# ── Approve / Reject helpers ───────────────────────────────────────────────────
+
+def _approve(client, team_id=TARGET_TEAM_ID, rid=MERGE_REQUEST_ID):
+    return client.post(
+        f"/teams/{team_id}/merge-requests/{rid}/approve",
+        headers={"Authorization": "Bearer fake-token"},
+    )
+
+def _reject(client, team_id=TARGET_TEAM_ID, rid=MERGE_REQUEST_ID):
+    return client.post(
+        f"/teams/{team_id}/merge-requests/{rid}/reject",
+        headers={"Authorization": "Bearer fake-token"},
+    )
+
+def _approved_row():
+    return {**MERGE_REQUEST_ROW, "status": "approved"}
+
+def _rejected_row():
+    return {**MERGE_REQUEST_ROW, "status": "rejected"}
+
+
+# ── Approve tests ─────────────────────────────────────────────────────────────
+
+def test_approve_not_target_owner_forbidden(client):
+    # _assert_target_owner: target team exists but belongs to someone else
+    target_row = {"created_by": OTHER_USER_ID}
+    with patch("routers.teams.supabase_admin") as mock_db:
+        mock_db.table.side_effect = lambda _: _chainable_table([target_row])
+        res = _approve(client)
+    assert res.status_code == 403
+
+
+def test_approve_merge_request_not_found(client):
+    target_row = {"created_by": CREATOR_USER_ID}
+    results = iter([[target_row], []])  # owner ok, then MR missing
+    with patch("routers.teams.supabase_admin") as mock_db:
+        mock_db.table.side_effect = lambda _: _chainable_table(next(results))
+        res = _approve(client)
+    assert res.status_code == 404
+
+
+def test_approve_exceeds_max_size(client):
+    target_row = {"created_by": CREATOR_USER_ID}
+    pending_mr = {**MERGE_REQUEST_ROW, "status": "pending"}
+    target_team_size = {"max_size": 2}
+    # 2 existing members + 1 requesting member = 3 > max 2
+    two_members  = [{"user_id": "u1"}, {"user_id": "u2"}]
+    one_member   = [{"user_id": "u3"}]
+    results = iter([[target_row], [pending_mr], [target_team_size], two_members, one_member])
+    with patch("routers.teams.supabase_admin") as mock_db:
+        mock_db.table.side_effect = lambda _: _chainable_table(next(results))
+        res = _approve(client)
+    assert res.status_code == 409
+    assert "max size" in res.json()["detail"]
+
+
+def test_approve_success(client):
+    target_row       = {"created_by": CREATOR_USER_ID}
+    pending_mr       = {**MERGE_REQUEST_ROW, "status": "pending"}
+    target_team_size = {"max_size": 4}
+    one_member       = [{"user_id": "u1"}]
+    one_member2      = [{"user_id": "u2"}]
+    # table() is called 8 times: owner check, MR fetch, max_size, 2x members,
+    # move members (update), mark merged (update), update MR status (update)
+    results = iter([
+        [target_row], [pending_mr], [target_team_size], one_member, one_member2,
+        [], [], [_approved_row()],
+    ])
+
+    with patch("routers.teams.supabase_admin") as mock_db:
+        mock_db.table.side_effect = lambda _: _chainable_table(next(results))
+        res = _approve(client)
+
+    assert res.status_code == 200
+    assert res.json()["status"] == "approved"
+
+
+# ── Reject tests ──────────────────────────────────────────────────────────────
+
+def test_reject_not_target_owner_forbidden(client):
+    target_row = {"created_by": OTHER_USER_ID}
+    with patch("routers.teams.supabase_admin") as mock_db:
+        mock_db.table.side_effect = lambda _: _chainable_table([target_row])
+        res = _reject(client)
+    assert res.status_code == 403
+
+
+def test_reject_merge_request_not_found(client):
+    target_row = {"created_by": CREATOR_USER_ID}
+    results = iter([[target_row], []])
+    with patch("routers.teams.supabase_admin") as mock_db:
+        mock_db.table.side_effect = lambda _: _chainable_table(next(results))
+        res = _reject(client)
+    assert res.status_code == 404
+
+
+def test_reject_success(client):
+    target_row = {"created_by": CREATOR_USER_ID}
+    pending_mr = {**MERGE_REQUEST_ROW, "status": "pending"}
+    # table() called 3 times: owner check, MR fetch, update MR status
+    results = iter([[target_row], [pending_mr], [_rejected_row()]])
+    with patch("routers.teams.supabase_admin") as mock_db:
+        mock_db.table.side_effect = lambda _: _chainable_table(next(results))
+        res = _reject(client)
+    assert res.status_code == 200
+    assert res.json()["status"] == "rejected"
