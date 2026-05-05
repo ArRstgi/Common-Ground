@@ -16,7 +16,9 @@ async function request(path, options = {}) {
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(error.detail ?? "Request failed");
+    const err = new Error(error.detail ?? "Request failed");
+    err.status = res.status; 
+    throw err;
   }
 
   // 204 No Content

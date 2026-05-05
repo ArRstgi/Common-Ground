@@ -8,6 +8,11 @@ import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
+import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
+import Collapse from "@mui/material/Collapse";
+
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // ── Static data ────────────────────────────────────────────────────────────────
 
@@ -29,15 +34,25 @@ export default function SurveyJoin() {
         setSuccess(false);
     }
 
-    function tryJoin() {
+    async function tryJoin(user_id) {
         setError(false);
         setSuccess(false);
-        if (code.trim() === "CS320ABC") {
+
+        const payload = {
+            user_id: user_id, 
+            join_code: code,
+        }
+        try {
+            const res = await api.post("/surveys/join", payload);
             setSuccess(true);
-        } else if (code.trim().length > 0) {
-            setError(true);
+        } catch (err) {
+            setError(err.message || "Something went wrong. Please try again.");
+        } finally {
+            setCode("");
         }
     }
+
+    const { user } = useAuth();
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
@@ -57,20 +72,20 @@ export default function SurveyJoin() {
                     <Typography variant="h6" fontWeight={600} letterSpacing="-0.02em" mb={0.75}>
                         Join a survey
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" lineHeight={1.5} mb={4}>
+                    <Typography variant="body2" color="text.secondary" lineheight={1.5} mb={4}>
                         Enter the code shared by your instructor or club leader to join a survey and
                         start finding teammates.
                     </Typography>
 
-                    {/* Feedback messages */}
-                    {error && (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            That code doesn't match any survey. Check with your instructor.
+                    {/* Error banner */}
+                    <Collapse in={!!error}>
+                        <Alert severity="error" onClose={() => setError("")} sx={{ mb: 2 }}>
+                            {error}
                         </Alert>
-                    )}
+                    </Collapse>
                     {success && (
                         <Alert severity="success" sx={{ mb: 2 }}>
-                            You've joined the survey! Redirecting...
+                            You've joined the survey! 
                         </Alert>
                     )}
 
@@ -80,7 +95,7 @@ export default function SurveyJoin() {
                         value={code}
                         onChange={(e) => setCode(e.target.value.toUpperCase())}
                         placeholder="e.g. CS320ABC"
-                        inputProps={{ maxLength: 8 }}
+                        inputprops={{ maxLength: 8 }}
                         slotProps={{
                             input: {
                                 sx: {
@@ -98,7 +113,7 @@ export default function SurveyJoin() {
                         variant="contained"
                         fullWidth
                         size="large"
-                        onClick={tryJoin}
+                        onClick={() => tryJoin(user.id)}
                         sx={{ fontWeight: 600 }}
                     >
                         Join survey
@@ -115,7 +130,7 @@ export default function SurveyJoin() {
                         variant="caption"
                         fontFamily="monospace"
                         color="text.disabled"
-                        textTransform="uppercase"
+                        texttransform="uppercase"
                         letterSpacing="0.06em"
                         display="block"
                         mb={1.5}

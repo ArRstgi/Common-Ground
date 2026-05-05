@@ -66,6 +66,16 @@ class SurveyCreateResponse(BaseModel):
     created_at: datetime
 
 
+class SurveyJoinRequest(BaseModel):
+    user_id: uuid.UUID
+    join_code: str
+
+class SurveyJoinResponse(BaseModel):
+    user_id: uuid.UUID
+    survey_id: uuid.UUID
+    joined_at: datetime
+
+
 
 # ── Teams ─────────────────────────────────────────────────────────────────────
 
