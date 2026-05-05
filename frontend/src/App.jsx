@@ -40,7 +40,7 @@ export default function App() {
 
           {/* SHOULD be protected, unprotected for testing  */}
           <Route path="/surveyjoin" element={<SurveyJoin />} />
-          <Route path="/surveycreate" element={<SurveyCreate />} />
+          <Route path="/surveycreate" element={<ProtectedRoute><SurveyCreate /></ProtectedRoute>} />
           <Route path="/surveydetail" element={<SurveyDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/teams" element={<TeamBrowser />} />

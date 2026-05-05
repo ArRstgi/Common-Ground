@@ -1,1 +1,1 @@
-SELECT * FROM questions;
+SELECT * FROM answer_options;
