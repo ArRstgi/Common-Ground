@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -18,12 +18,14 @@ import CardContent from "@mui/material/CardContent";
 import CardActionArea from "@mui/material/CardActionArea";
 
 function SurveyCard({ survey_id, title, description, deadline }) { 
+
+    const navigate = useNavigate();
     deadline = deadline || "unset"
     return (
         <Card variant="outlined">
-            <CardActionArea onClick={() => { console.log("Should go to ", survey_id)}}>
+            <CardActionArea onClick={() => { navigate(`/surveydetail/${survey_id}`); }}>
                 <CardContent>
-                    <Stack direction="row" sx={{justifyContent: "space-between", alignItems: "flex-start" }} gap={1}>
+                    <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-start" }} gap={1}>
                         <Typography variant="subtitle1" fontWeight={500}>
                             {title}
                         </Typography>

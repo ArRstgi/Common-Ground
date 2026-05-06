@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -13,6 +13,8 @@ import Radio from "@mui/material/Radio";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CircleIcon from "@mui/icons-material/Circle";
+import { api } from "../api/client";
+import Collapse from "@mui/material/Collapse";
 
 // ── Static survey data ─────────────────────────────────────────────────────────
 
@@ -57,14 +59,16 @@ function MultChoiceQuestion({ question, selected, onSelect }) {
                 variant="caption"
                 fontFamily="monospace"
                 color="text.disabled"
-                textTransform="uppercase"
                 letterSpacing="0.06em"
                 display="block"
-                mb={1}
+                sx={{
+                    textTransform:"uppercase",
+                    mb:1
+                }}
             >
                 Question {question.index}
             </Typography>
-            <Typography fontWeight={500} fontSize={15} lineHeight={1.4} mb={2.25}>
+            <Typography fontWeight={500} fontSize={15} sx={{lineHeight:1.4, mb:2.25}}>
                 {question.prompt}
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -118,14 +122,16 @@ function ShortAnsQuestion({ question, value, onChange }) {
                 variant="caption"
                 fontFamily="monospace"
                 color="text.disabled"
-                textTransform="uppercase"
+                sx={{
+                    textTransform:"uppercase"
+                }}
                 letterSpacing="0.06em"
                 display="block"
                 mb={1}
             >
                 Question {question.index}
             </Typography>
-            <Typography fontWeight={500} fontSize={15} lineHeight={1.4} mb={2.25}>
+            <Typography fontWeight={500} fontSize={15} sx={{lineHeight:1.4, mb:2.25}}>
                 {question.prompt}
             </Typography>
             <TextField
@@ -145,9 +151,15 @@ function ShortAnsQuestion({ question, value, onChange }) {
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function SurveyDetail() {
+    const { survey_id } = useParams();
+    const [error, setError] = useState("");
     const [mcAnswers, setMcAnswers] = useState({ q1: "Plan ahead and divide work early" });
     const [saAnswers, setSaAnswers] = useState({ q3: "" });
     const [submitted, setSubmitted] = useState(false);
+
+    function setData(data) {
+        
+    }
 
     function handleSelectOption(qId, value) {
         setMcAnswers((prev) => ({ ...prev, [qId]: value }));
@@ -169,15 +181,29 @@ export default function SurveyDetail() {
         setSubmitted(true);
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
+    
+    useEffect(() => {
+        async function getSurveyDetails(survey_id) {
+            try {
+                const data = await api.get(`/surveys/full_survey_by_id/${survey_id}`);
+                setData(data);
+            } catch (err) {
+                setError(err.message || "Something went wrong. Please try again.");
+            }
+        }
+
+        getSurveyDetails(survey_id);
+    }, [])
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
+            
 
             <Box component="main" sx={{ flex: 1, p: "32px 36px", maxWidth: 680 }}>
                 {/* Back link */}
                 <Box
                     component={Link}
-                    to="/surveys"
+                    to="/mysurveys"
                     sx={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -193,12 +219,19 @@ export default function SurveyDetail() {
                     My surveys
                 </Box>
 
+                {/* Error banner */}
+                <Collapse in={!!error}>
+                    <Alert severity="error" onClose={() => setError("")} sx={{ mb: 2 }}>
+                        {error}
+                    </Alert>
+                </Collapse>
+
                 {/* Survey header */}
                 <Paper variant="outlined" sx={{ p: 3, mb: 2, borderRadius: 3 }}>
                     <Typography variant="h6" fontWeight={600} letterSpacing="-0.02em" mb={0.75}>
                         {SURVEY.title}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" lineHeight={1.5} mb={2}>
+                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight:1.5, mb:2 }}>
                         {SURVEY.description}
                     </Typography>
                     <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
@@ -236,7 +269,7 @@ export default function SurveyDetail() {
                         value={progressPct}
                         sx={{ flex: 1, height: 5, borderRadius: 2 }}
                     />
-                    <Typography variant="caption" fontFamily="monospace" color="text.disabled" whiteSpace="nowrap">
+                    <Typography variant="caption" fontFamily="monospace" color="text.disabled" sx={{whiteSpace:"nowrap"}}>
                         {answered} / {total} answered
                     </Typography>
                 </Box>
