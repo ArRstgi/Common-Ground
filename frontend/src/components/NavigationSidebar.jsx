@@ -12,6 +12,7 @@ import PollOutlinedIcon from '@mui/icons-material/PollOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import Person2OutlinedIcon from '@mui/icons-material/Person2Outlined';
 import CircleIcon from '@mui/icons-material/Circle';
+import AddIcon from '@mui/icons-material/Add';
 
 import { Link } from "react-router-dom";
 
@@ -25,7 +26,7 @@ const NAV_ITEMS = [
     { id: 'find-teams', label: 'Find Teams', href: '/teams',      icon: <GroupsOutlinedIcon fontSize="small" />  },
     { id: 'profile',    label: 'Profile',    href: '/profile',    icon: <Person2OutlinedIcon fontSize="small" />   },
     { id: 'create-survey',    label: 'Create Survey',    href: '/surveycreate',    icon: <CircleIcon fontSize="small" />   },
-    { id: 'survey-join',    label: 'Join Survey',    href: '/surveyjoin',    icon: <CircleIcon fontSize="small" />   },
+    { id: 'survey-join',    label: 'Join Survey',    href: '/surveyjoin',    icon: <AddIcon fontSize="small" />   },
 ];
 
 export const NAV_ID_BY_PATH = {};

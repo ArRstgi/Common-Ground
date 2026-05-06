@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from supabase import create_client, Client
 
 from models.schemas import AnswerOptionIn, QuestionIn, SurveyCreateRequest, SurveyCreateResponse
+from models.schemas import SurveyJoinRequest, SurveyJoinResponse
  
 from config import settings
 
@@ -85,9 +86,9 @@ def _parse_deadline(deadline_str: str | None) -> str | None:
             detail=f"Invalid deadline format '{deadline_str}'. Use YYYY-MM-DD.",
         )
 
-# ── Route ──────────────────────────────────────────────────────────────────────
+# ── Routes ──────────────────────────────────────────────────────────────────────
 
-@router.post("/", response_model=SurveyCreateResponse, status_code=201)
+@router.post("/create", response_model=SurveyCreateResponse, status_code=201)
 async def create_survey(body: SurveyCreateRequest):
     """
     Create a survey with its questions and (for multiple-choice questions)
@@ -168,7 +169,77 @@ async def create_survey(body: SurveyCreateRequest):
         raise
  
     return SurveyCreateResponse(
-        id=uuid.UUID(created_survey["id"]),
-        join_code=created_survey["join_code"],
-        created_at=datetime.fromisoformat(created_survey["created_at"]),
+        id=uuid.UUID(created_survey["id"]), # type: ignore
+        join_code=created_survey["join_code"], # type: ignore
+        created_at=datetime.fromisoformat(created_survey["created_at"]), # type: ignore
+    )
+
+@router.post("/join", response_model=SurveyJoinResponse, status_code=201)
+async def join_survey(body: SurveyJoinRequest):
+    """
+    A user joins a survey.
+    """
+
+    supabase = get_supabase()
+    survey_info_cols = ["id", "join_code", "deadline"]
+    survey_res = (
+        supabase.table("surveys")
+        .select(*survey_info_cols)
+        .eq("join_code", body.join_code)
+        .execute()
+    )
+
+    # Check if the join code is correct
+    if not survey_res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="No survey has that join code. " \
+            "Please reach out to the Survey Administrator and ensure you have the correct Join Code."
+        )
+    
+    survey = survey_res.data[0]
+
+    # Check if the survey is expired
+    if survey["deadline"]: # type: ignore
+        deadline = datetime.fromisoformat(survey["deadline"]) # type: ignore
+        if datetime.now(timezone.utc) > deadline: 
+            raise HTTPException(
+                status_code=404,
+                detail=f"That survey expired on {deadline.isoformat(timespec='minutes')}."
+            )
+
+    # Check if the user had already joined the survey
+    user_already_in_survey = (
+        supabase.table("survey_members")
+        .select("user_id", "survey_id")
+        .eq("user_id", body.user_id)
+        .eq("survey_id", survey["id"]) # type: ignore
+        .execute()
+    )
+
+    print("USER ALREADY IN SURVEY:", user_already_in_survey.data)
+    if user_already_in_survey.data != []:
+        raise HTTPException(
+            status_code=403,
+            detail="You are already in this survey."
+        )
+
+    # Finally, we can actually add the user to the survey
+    survey_member_insert = {
+        "survey_id": survey["id"], # type: ignore
+        "user_id": str(body.user_id),
+        "joined_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    output = (
+        supabase.table("survey_members")
+        .insert(survey_member_insert)
+        .execute()
+    ).data[0]
+
+    
+    return SurveyJoinResponse(
+        user_id=uuid.UUID(output["user_id"]), # type: ignore
+        survey_id=uuid.UUID(output["survey_id"]), # type: ignore
+        joined_at=datetime.fromisoformat(output["joined_at"]), # type: ignore
     )

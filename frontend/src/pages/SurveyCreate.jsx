@@ -21,6 +21,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { QuestionCard } from "../components/SurveyQuestionCard";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../api/client";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -214,16 +215,8 @@ export default function SurveyCreate() {
 
         try {
             setSubmitting(true);
-            const res = await fetch(`${API_BASE}/surveys/`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
 
-            if (!res.ok) {
-                const data = await res.json().catch(() => ({}));
-                throw new Error(data.detail ?? `Server error ${res.status}`);
-            }
+            const res = await api.post("/surveys/create", payload)
 
             const data = await res.json();
             setSuccessCode(data.join_code);
