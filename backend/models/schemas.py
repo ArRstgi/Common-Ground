@@ -89,6 +89,9 @@ class SurveyGetQuestion(BaseModel):
     question_type: str = Field(..., pattern="^(multiple_choice|short_answer)$")
     # order_index: str
     answers: list[SurveyGetAnswerChoice] | None
+    saved_answer_id: uuid.UUID | None 
+    saved_answer_text: str | None 
+
 
 class SurveyGetAnswerChoice(BaseModel):
     answer_option_id: uuid.UUID

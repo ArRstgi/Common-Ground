@@ -1,9 +1,10 @@
 import random
 import string
 import uuid
+from auth import get_current_user # type: ignore
 from datetime import datetime, timezone
  
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from supabase import create_client, Client
 
@@ -248,7 +249,7 @@ async def join_survey(body: SurveyJoinRequest):
 
 
 @router.get("/full_survey_by_id/{survey_id}", response_model=SurveyGetResponse, status_code=200)
-async def get_full_survey_by_id(survey_id: str):
+async def get_full_survey_by_id(survey_id: str, user = Depends(get_current_user)):
 
     supabase = get_supabase()
 
@@ -267,12 +268,36 @@ async def get_full_survey_by_id(survey_id: str):
     
     survey = survey_res.data[0]
 
+    responses_res = (
+        supabase.table("survey_responses")
+        .select("question_id", "answer_option_id", "answer_text")
+        .eq("survey_id", survey_id)
+        .eq("user_id", user["sub"])
+        .execute()
+    )
+
+    # Build a lookup map: question_id -> saved response row
+    saved = {r["question_id"]: r for r in responses_res.data} # type: ignore
+
+    questions = await get_questions_by_survey_id(survey["id"], supabase) # type: ignore
+
+    # Attach saved answers to each question
+    for q in questions:
+        response = saved.get(str(q.question_id))
+        q.saved_answer_id = (
+            uuid.UUID(response["answer_option_id"]) # type: ignore
+            if response and response["answer_option_id"] # type: ignore 
+            else None
+        )
+        q.saved_answer_text = response["answer_text"] if response else None # type: ignore
+
+
     return SurveyGetResponse(
         survey_id=survey["id"], # type: ignore
         title=survey["title"], # type: ignore
         description=survey["description"] or "<No Description>", # type: ignore
         deadline = datetime.fromisoformat(survey["deadline"]) if survey["deadline"] else None, # type: ignore
-        questions=await get_questions_by_survey_id(survey["id"], supabase) # type: ignore
+        questions=questions
     )
 
 async def get_questions_by_survey_id(survey_id: str, supabase: Client) -> list[SurveyGetQuestion]:
@@ -299,14 +324,18 @@ async def get_questions_by_survey_id(survey_id: str, supabase: Client) -> list[S
                 question_id=uuid.UUID(question["id"]), # type: ignore
                 prompt=question["prompt"], # type: ignore
                 question_type=question["question_type"], # type: ignore
-                answers=None
+                answers=None,
+                saved_answer_id=None,
+                saved_answer_text=None,
             ))      
         else:
             questions_out.append(SurveyGetQuestion( 
                 question_id=uuid.UUID(question["id"]), # type: ignore
                 prompt=question["prompt"], # type: ignore
                 question_type=question["question_type"], # type: ignore
-                answers=await get_answers_by_question_id(question["id"], supabase) # type: ignore
+                answers=await get_answers_by_question_id(question["id"], supabase), # type: ignore
+                saved_answer_id=None,
+                saved_answer_text=None,
             ))            
 
     return questions_out
@@ -392,7 +421,6 @@ async def save_answers(body: SurveyAnswersInput):
                 },
                 on_conflict="survey_id,question_id,user_id",
             ).execute()
-            print("Added", answer.answer_id, answer.answer_text, "to answers!")
     except:
         raise HTTPException(
             status_code=500,

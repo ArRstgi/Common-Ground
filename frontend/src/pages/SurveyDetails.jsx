@@ -154,7 +154,22 @@ export default function SurveyDetail() {
         async function fetchSurvey() {
             try {
                 const data = await api.get(`/surveys/full_survey_by_id/${survey_id}`);
+
+                // Set the main survey
                 setSurvey(data);
+
+                // Set the saved answers, if present
+                const saved = Object.fromEntries(
+                    data.questions
+                        .filter((q) => q.saved_answer_id || q.saved_answer_text)
+                        .map((q) => [
+                            q.question_id,
+                            q.question_type === "multiple_choice"
+                                ? q.saved_answer_id
+                                : q.saved_answer_text,
+                        ])
+                );
+                setAnswers(saved);
             } catch (err) {
                 setError(err.message || "Something went wrong. Please try again.");
             } finally {
