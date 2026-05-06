@@ -8,7 +8,11 @@ import Alert from "@mui/material/Alert";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import MuiLink from "@mui/material/Link";
+import Person2OutlinedIcon from "@mui/icons-material/Person2Outlined";
+import AddCircleOutlinedIcon from "@mui/icons-material/AddCircleOutlined";
 
 export default function Register() {
   const { register } = useAuth();
@@ -17,6 +21,7 @@ export default function Register() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("member");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +30,7 @@ export default function Register() {
     setError(null);
     setLoading(true);
     try {
-      await register(email, password, fullName);
+      await register(email, password, fullName, role);
       navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.message);
@@ -46,14 +51,11 @@ export default function Register() {
         bgcolor: "grey.100",
       }}
     >
-      <Paper
-        elevation={2}
-        sx={{ width: "100%", maxWidth: 400, p: 4, borderRadius: 3 }}
-      >
+      <Paper elevation={2} sx={{ width: "100%", maxWidth: 420, p: 4, borderRadius: 3 }}>
         <Typography variant="h5" fontWeight={700} gutterBottom>
           Common Ground
         </Typography>
-        <Typography variant="body2" color="text.secondary" mb={3} gutterBottom>
+        <Typography variant="body2" color="text.secondary" mb={3}>
           Create your account
         </Typography>
 
@@ -63,16 +65,41 @@ export default function Register() {
           </Alert>
         )}
 
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-        >
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {/* Role selector */}
+          <Box>
+            <Typography variant="caption" color="text.secondary" fontWeight={500} mb={0.75} display="block">
+              I am a…
+            </Typography>
+            <ToggleButtonGroup
+              value={role}
+              exclusive
+              onChange={(_, val) => { if (val) setRole(val); }}
+              fullWidth
+              size="small"
+              sx={{ '& .MuiToggleButton-root': { fontSize: 13, gap: 0.75, textTransform: 'none', py: 1 } }}
+            >
+              <ToggleButton value="member">
+                <Person2OutlinedIcon fontSize="small" />
+                Student / Member
+              </ToggleButton>
+              <ToggleButton value="survey_creator">
+                <AddCircleOutlinedIcon fontSize="small" />
+                Survey Creator
+              </ToggleButton>
+            </ToggleButtonGroup>
+            <Typography variant="caption" color="text.disabled" mt={0.75} display="block">
+              {role === "survey_creator"
+                ? "You can create surveys and manage team formation."
+                : "You can join surveys, respond, and form teams."}
+            </Typography>
+          </Box>
+
           <TextField
             label="Full name"
             type="text"
             value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            onChange={e => setFullName(e.target.value)}
             fullWidth
             size="small"
           />
@@ -80,7 +107,7 @@ export default function Register() {
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             required
             fullWidth
             size="small"
@@ -89,7 +116,7 @@ export default function Register() {
             label="Password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
             required
             inputProps={{ minLength: 6 }}
             fullWidth

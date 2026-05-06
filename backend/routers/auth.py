@@ -1,4 +1,4 @@
-from db import supabase
+from db import supabase, supabase_admin
 from fastapi import APIRouter, HTTPException, status
 from models.schemas import AuthResponse, LoginRequest, RegisterRequest
 
@@ -22,15 +22,18 @@ async def register(body: RegisterRequest):
             status_code=400, detail="Registration failed. Email may already be in use."
         )
 
-    # Update the auto-created profile with the display name
+    # Update the auto-created profile with name and role
+    profile_update = {"role": body.role}
     if body.full_name:
-        supabase.table("profiles").update({"full_name": body.full_name}).eq(
-            "id", response.user.id
-        ).execute()
+        profile_update["full_name"] = body.full_name
+    supabase_admin.table("profiles").update(profile_update).eq(
+        "id", response.user.id
+    ).execute()
 
     return AuthResponse(
         access_token=response.session.access_token,
         user_id=str(response.user.id),
+        role=body.role,
     )
 
 
@@ -46,7 +49,13 @@ async def login(body: LoginRequest):
     if response.user is None:
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
+    profile = supabase_admin.table("profiles").select("role").eq(
+        "id", response.user.id
+    ).maybe_single().execute()
+    role = profile.data["role"] if profile.data else "member"
+
     return AuthResponse(
         access_token=response.session.access_token,
         user_id=str(response.user.id),
+        role=role,
     )

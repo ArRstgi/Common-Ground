@@ -3,13 +3,15 @@ import string
 import uuid
 from datetime import datetime, timezone
  
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from supabase import create_client, Client
 
+from auth import get_user_id
+from db import supabase_admin
 from models.schemas import AnswerOptionIn, QuestionIn, SurveyCreateRequest, SurveyCreateResponse
 from models.schemas import SurveyJoinRequest, SurveyJoinResponse
- 
+
 from config import settings
 
 router = APIRouter(prefix="/surveys", tags=["surveys"])
@@ -89,12 +91,16 @@ def _parse_deadline(deadline_str: str | None) -> str | None:
 # ── Routes ──────────────────────────────────────────────────────────────────────
 
 @router.post("/create", response_model=SurveyCreateResponse, status_code=201)
-async def create_survey(body: SurveyCreateRequest):
+async def create_survey(body: SurveyCreateRequest, user_id: str = Depends(get_user_id)):
     """
     Create a survey with its questions and (for multiple-choice questions)
     answer options.  All inserts are performed in a logical sequence; if any
     step fails the survey row is deleted to avoid orphaned records.
     """
+    profile = supabase_admin.table("profiles").select("role").eq("id", user_id).maybe_single().execute()
+    if not profile.data or profile.data.get("role") != "survey_creator":
+        raise HTTPException(status_code=403, detail="Only survey creators can create surveys.")
+
     _validate_questions(body.questions)
  
     supabase = get_supabase()
@@ -106,7 +112,7 @@ async def create_survey(body: SurveyCreateRequest):
         "id": survey_id,
         "title": body.title,
         "description": body.description,
-        "created_by": str(body.created_by),
+        "created_by": user_id,
         "join_code": join_code,
         "deadline": _parse_deadline(body.deadline),
         "created_at": datetime.now(timezone.utc).isoformat(),
