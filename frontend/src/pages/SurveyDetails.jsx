@@ -239,7 +239,7 @@ export default function SurveyDetail() {
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
-            <Box component="main" sx={{ flex: 1, p: "32px 36px", maxWidth: 680 }}>
+            <Box component="main" sx={{ maxWidth: 680, mx: "auto", px: { xs: 2, sm: 4 }, pt: 5, pb: 8 }}>
 
                 {/* Back link */}
                 <Box

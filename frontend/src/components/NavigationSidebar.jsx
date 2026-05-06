@@ -27,7 +27,6 @@ const NAV_ITEMS = [
     { id: 'find-teams', label: 'Find Teams', href: '/teams', icon: <GroupsOutlinedIcon fontSize="small" /> },
     { id: 'profile', label: 'Profile', href: '/profile', icon: <Person2OutlinedIcon fontSize="small" /> },
     { id: 'create-survey', label: 'Create Survey', href: '/surveycreate', icon: <CircleIcon fontSize="small" /> },
-    { id: 'survey-detail', label: 'Survey Details', icon: <PollOutlinedIcon fontSize="small" /> },
 ];
 
 const NAV_ID_BY_PATH = {};
@@ -35,7 +34,7 @@ NAV_ITEMS.forEach((item) => NAV_ID_BY_PATH[item.href] = item.id);
 NAV_ID_BY_PATH["/surveydetail"] = "survey-detail";
 export function nav_id_by_path(path) {
     if (path.includes("/surveydetail")) {
-        return "survey-detail";
+        return "my-surveys";
     }
     return NAV_ID_BY_PATH[path];
 }
