@@ -355,7 +355,7 @@ async def get_surveys_by_user(user_id: str):
         
         survey_res = (
             supabase.table("surveys")
-            .select("id", "title", "description", "")
+            .select("id", "title", "description", "deadline")
             .eq("id", entry["survey_id"]) # type: ignore
             .execute()
         )

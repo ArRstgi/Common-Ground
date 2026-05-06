@@ -216,9 +216,8 @@ export default function SurveyCreate() {
         try {
             setSubmitting(true);
 
-            const res = await api.post("/surveys/create", payload)
+            const data = await api.post("/surveys/create", payload)
 
-            const data = await res.json();
             setSuccessCode(data.join_code);
         } catch (err) {
             setError(err.message || "Something went wrong. Please try again.");
