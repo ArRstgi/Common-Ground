@@ -10,7 +10,7 @@ from supabase import create_client, Client
 from models.schemas import AnswerOptionIn, QuestionIn, SurveyCreateRequest, SurveyCreateResponse
 from models.schemas import SurveyJoinRequest, SurveyJoinResponse
 from models.schemas import SurveyGetResponse, SurveyGetQuestion, SurveyGetAnswerChoice
-from models.schemas import SurveyPreview
+from models.schemas import SurveyPreview, SurveyAnswersInput
  
 from config import settings
 
@@ -373,3 +373,29 @@ async def get_surveys_by_user(user_id: str):
 
     return output
 
+@router.post("/save_answers", response_model=str, status_code=201)
+async def save_answers(body: SurveyAnswersInput):
+
+    supabase = get_supabase()
+
+    try:
+        for qid, answer in body.answers.items():
+
+            supabase.table("survey_responses").upsert(
+                {
+                    "id": str(uuid.uuid4()),
+                    "survey_id": str(body.survey_id),
+                    "user_id": str(body.user_id),
+                    "question_id": str(qid),
+                    "answer_option_id": str(answer.answer_id) if answer.question_type == "multiple_choice" else None,
+                    "answer_text": str(answer.answer_text) if answer.question_type == "short_answer" else None,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                },
+                on_conflict="survey_id,question_id,user_id",
+            ).execute()
+    except:
+        raise HTTPException(
+            status_code=500,
+            detail="Something went wrong when saving your answers. Please try again."
+        )
+    

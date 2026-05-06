@@ -103,6 +103,16 @@ class SurveyPreview(BaseModel):
     deadline: datetime | None
 
 
+class SurveyAnswersInput(BaseModel):
+    answers: dict[str, SurveyAnswerByType]
+    survey_id: uuid.UUID
+    user_id: uuid.UUID
+
+class SurveyAnswerByType(BaseModel):
+    question_type: str = Field(..., pattern="^(multiple_choice|short_answer)$")
+    answer_id: uuid.UUID | None
+    answer_text: str | None
+
 # ── Teams ─────────────────────────────────────────────────────────────────────
 
 class TeamCreate(BaseModel):
