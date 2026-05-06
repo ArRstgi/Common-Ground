@@ -16,6 +16,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CircleIcon from "@mui/icons-material/Circle";
 
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -145,6 +146,8 @@ export default function SurveyDetail() {
     // Unified answers map: { [question_id]: answer_option_id | string }
     const [answers, setAnswers] = useState({});
 
+    const { user } = useAuth();
+
     // ── Data fetching ─────────────────────────────────────────────────────────
 
     useEffect(() => {
@@ -175,30 +178,44 @@ export default function SurveyDetail() {
 
     const questions = survey?.questions ?? [];
 
-    const answered = questions.filter((q) => {
+    const numAnswered = questions.filter((q) => {
         const val = answers[q.question_id];
         if (q.question_type === "multiple_choice") return !!val;
         return typeof val === "string" && val.trim().length > 0;
     }).length;
 
     const total = questions.length;
-    const progressPct = total > 0 ? Math.round((answered / total) * 100) : 0;
+    const progressPct = total > 0 ? Math.round((numAnswered / total) * 100) : 0;
 
     // ── Submit ────────────────────────────────────────────────────────────────
 
     function handleSubmit() {
-        // TODO: implement submission
+        const payload = {
+            survey_id: survey_id,
+            user_id: user.id,
+            answers: Object.fromEntries(
+                questions.map((q) => [
+                    q.question_id,
+                    {
+                        question_type: q.question_type,
+                        answer_id: q.question_type === "multiple_choice"
+                            ? (answers[q.question_id] ?? null)
+                            : null,
+                        answer_text: q.question_type === "short_answer"
+                            ? (answers[q.question_id] ?? null)
+                            : null,
+                    },
+                ])
+            ),
+        };
 
-
-        // TODO (maybe??)
-        // * Check if survey is fully filled out. If it is, say you can browse teams
-        // * If it is not fully filled out, say "changes saved" but you can't browse teams yet.
-
-
-        // answers is of type { [question_id]: answer_option_id | string }
-
-        setSubmitted(true);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        try {
+            api.post("/surveys/save_answers", payload);
+            setSubmitted(true);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (e) {
+            setError(e.message || "Failed to save answers. Please try again.");
+        }
     }
 
     // ── Render ────────────────────────────────────────────────────────────────
@@ -303,7 +320,7 @@ export default function SurveyDetail() {
                                 color="text.disabled"
                                 sx={{ whiteSpace: "nowrap" }}
                             >
-                                {answered} / {total} answered
+                                {numAnswered} / {total} answered
                             </Typography>
                         </Box>
 

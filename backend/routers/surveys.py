@@ -373,14 +373,13 @@ async def get_surveys_by_user(user_id: str):
 
     return output
 
-@router.post("/save_answers", response_model=str, status_code=201)
+@router.post("/save_answers", status_code=201)
 async def save_answers(body: SurveyAnswersInput):
 
     supabase = get_supabase()
 
     try:
         for qid, answer in body.answers.items():
-
             supabase.table("survey_responses").upsert(
                 {
                     "id": str(uuid.uuid4()),
@@ -393,9 +392,11 @@ async def save_answers(body: SurveyAnswersInput):
                 },
                 on_conflict="survey_id,question_id,user_id",
             ).execute()
+            print("Added", answer.answer_id, answer.answer_text, "to answers!")
     except:
         raise HTTPException(
             status_code=500,
             detail="Something went wrong when saving your answers. Please try again."
         )
     
+    return ""
