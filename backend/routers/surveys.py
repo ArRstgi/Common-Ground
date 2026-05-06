@@ -112,7 +112,7 @@ async def create_survey(body: SurveyCreateRequest, user_id: str = Depends(get_us
         "id": survey_id,
         "title": body.title,
         "description": body.description,
-        "created_by": str(body.created_by),
+        "created_by": user_id,
         "join_code": join_code,
         "deadline": _parse_deadline(body.deadline),
         "created_at": datetime.now(timezone.utc).isoformat(),

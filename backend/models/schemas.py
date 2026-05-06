@@ -57,8 +57,6 @@ class SurveyCreateRequest(BaseModel):
         None,
         description="ISO 8601 date string, e.g. '2026-06-01'. Stored as midnight UTC.",
     )
-    # TODO: change this so that it's not the client sending the created_by
-    created_by: uuid.UUID = Field()
     questions: list[QuestionIn] = Field(..., min_length=1)
  
  
