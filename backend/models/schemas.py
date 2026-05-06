@@ -76,6 +76,32 @@ class SurveyJoinResponse(BaseModel):
     joined_at: datetime
 
 
+class SurveyGetResponse(BaseModel):
+    survey_id: uuid.UUID
+    title: str
+    description: str
+    deadline: datetime | None
+    questions: list[SurveyGetQuestion]
+
+class SurveyGetQuestion(BaseModel):
+    question_id: uuid.UUID
+    prompt: str
+    question_type: str = Field(..., pattern="^(multiple_choice|short_answer)$")
+    # order_index: str
+    answers: list[SurveyGetAnswerChoice] | None
+
+class SurveyGetAnswerChoice(BaseModel):
+    answer_option_id: uuid.UUID
+    option_text: str
+    # option_index: str
+
+
+class SurveyPreview(BaseModel):
+    survey_id: uuid.UUID
+    title: str
+    description: str
+    deadline: datetime | None
+
 
 # ── Teams ─────────────────────────────────────────────────────────────────────
 

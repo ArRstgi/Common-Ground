@@ -50,7 +50,7 @@ const QUESTIONS = [
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-function MCQuestion({ question, selected, onSelect }) {
+function MultChoiceQuestion({ question, selected, onSelect }) {
     return (
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
             <Typography
@@ -111,7 +111,7 @@ function MCQuestion({ question, selected, onSelect }) {
     );
 }
 
-function SAQuestion({ question, value, onChange }) {
+function ShortAnsQuestion({ question, value, onChange }) {
     return (
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
             <Typography
@@ -247,7 +247,7 @@ export default function SurveyDetail() {
                         const qWithIndex = { ...q, index: i + 1 };
                         if (q.type === "mc") {
                             return (
-                                <MCQuestion
+                                <MultChoiceQuestion
                                     key={q.id}
                                     question={qWithIndex}
                                     selected={mcAnswers[q.id] ?? null}
@@ -256,7 +256,7 @@ export default function SurveyDetail() {
                             );
                         }
                         return (
-                            <SAQuestion
+                            <ShortAnsQuestion
                                 key={q.id}
                                 question={qWithIndex}
                                 value={saAnswers[q.id] ?? ""}

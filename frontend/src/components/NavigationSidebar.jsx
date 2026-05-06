@@ -21,12 +21,13 @@ import { Link } from "react-router-dom";
 const DRAWER_WIDTH = 220;
 
 const NAV_ITEMS = [
-    { id: 'dashboard',  label: 'Dashboard',  href: '/dashboard',  icon: <DashboardOutlinedIcon fontSize="small" /> },
-    { id: 'survey-detail',    label: 'My Surveys', href: '/surveydetail',    icon: <PollOutlinedIcon fontSize="small" />  },
-    { id: 'find-teams', label: 'Find Teams', href: '/teams',      icon: <GroupsOutlinedIcon fontSize="small" />  },
-    { id: 'profile',    label: 'Profile',    href: '/profile',    icon: <Person2OutlinedIcon fontSize="small" />   },
-    { id: 'create-survey',    label: 'Create Survey',    href: '/surveycreate',    icon: <CircleIcon fontSize="small" />   },
-    { id: 'survey-join',    label: 'Join Survey',    href: '/surveyjoin',    icon: <AddIcon fontSize="small" />   },
+    { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },
+    { id: 'my-surveys', label: 'My Surveys', href: '/mysurveys', icon: <CircleIcon fontSize="small" /> },
+    { id: 'survey-join', label: 'Join Survey', href: '/surveyjoin', icon: <AddIcon fontSize="small" /> },
+    { id: 'survey-detail', label: 'My Surveys', href: '/surveydetail', icon: <PollOutlinedIcon fontSize="small" /> },
+    { id: 'find-teams', label: 'Find Teams', href: '/teams', icon: <GroupsOutlinedIcon fontSize="small" /> },
+    { id: 'profile', label: 'Profile', href: '/profile', icon: <Person2OutlinedIcon fontSize="small" /> },
+    { id: 'create-survey', label: 'Create Survey', href: '/surveycreate', icon: <CircleIcon fontSize="small" /> },
 ];
 
 export const NAV_ID_BY_PATH = {};

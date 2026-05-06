@@ -12,6 +12,7 @@ import TeamBrowser  from "./pages/TeamBrowser";
 import SurveyCreate from "./pages/SurveyCreate";
 import Profile      from "./pages/Profile";
 import SurveyDetail from "./pages/SurveyDetails";
+import MySurveys from "./pages/MySurveys";
 
 
 const ROUTES_WITHOUT_SIDEBAR = [
@@ -32,15 +33,18 @@ export default function App() {
       <Box component="main" sx={{ flex: 1 }}>
         <Routes>
           {/* Public routes */}
-          <Route path="/login"    element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
           {/* Protected routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
-          {/* SHOULD be protected, unprotected for testing  */}
-          <Route path="/surveyjoin" element={<SurveyJoin />} />
+          <Route path="/mysurveys" element={<ProtectedRoute><MySurveys /></ProtectedRoute>} />
+          <Route path="/surveyjoin" element={<ProtectedRoute><SurveyJoin /></ProtectedRoute>} />
           <Route path="/surveycreate" element={<ProtectedRoute><SurveyCreate /></ProtectedRoute>} />
+
+
+          {/* SHOULD be protected, unprotected for testing  */}
           <Route path="/surveydetail" element={<SurveyDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/teams" element={<TeamBrowser />} />
