@@ -14,15 +14,6 @@ import Collapse from "@mui/material/Collapse";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
-// ── Static data ────────────────────────────────────────────────────────────────
-
-const RECENT_SURVEYS = [
-    { name: "CS 320 Project Groups",  meta: "Amherst College · 14 days left", code: "CS320ABC" },
-    { name: "Math 251 Study Groups",  meta: "Amherst College · Ended",        code: "MATH251X" },
-];
-
-// ── Page ───────────────────────────────────────────────────────────────────────
-
 export default function SurveyJoin() {
     const [code,    setCode]    = useState("");
     const [error,   setError]   = useState(false);
@@ -37,6 +28,11 @@ export default function SurveyJoin() {
     async function tryJoin(user_id) {
         setError(false);
         setSuccess(false);
+
+        if (code === "") {
+            setError("Please enter a code in the box.")
+            return
+        }
 
         const payload = {
             user_id: user_id, 
@@ -56,7 +52,6 @@ export default function SurveyJoin() {
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
-
             <Box
                 component="main"
                 sx={{
@@ -72,7 +67,7 @@ export default function SurveyJoin() {
                     <Typography variant="h6" fontWeight={600} letterSpacing="-0.02em" mb={0.75}>
                         Join a survey
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" lineheight={1.5} mb={4}>
+                    <Typography variant="body2" color="text.secondary" sx={{ pb: 1 }}>
                         Enter the code shared by your instructor or club leader to join a survey and
                         start finding teammates.
                     </Typography>
@@ -118,62 +113,6 @@ export default function SurveyJoin() {
                     >
                         Join survey
                     </Button>
-
-                    <Divider sx={{ my: 3 }}>
-                        <Typography variant="caption" color="text.disabled">
-                            or join a recent survey
-                        </Typography>
-                    </Divider>
-
-                    {/* Recent surveys */}
-                    <Typography
-                        variant="caption"
-                        fontFamily="monospace"
-                        color="text.disabled"
-                        texttransform="uppercase"
-                        letterSpacing="0.06em"
-                        display="block"
-                        mb={1.5}
-                    >
-                        Previously joined
-                    </Typography>
-
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                        {RECENT_SURVEYS.map((s) => (
-                            <Box
-                                key={s.code}
-                                onClick={() => fillCode(s.code)}
-                                sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    px: 1.75,
-                                    py: 1.5,
-                                    border: "1px solid",
-                                    borderColor: "divider",
-                                    borderRadius: 2,
-                                    bgcolor: "grey.50",
-                                    cursor: "pointer",
-                                    transition: "border-color 0.15s",
-                                    "&:hover": { borderColor: "primary.main" },
-                                }}
-                            >
-                                <Box>
-                                    <Typography variant="body2" fontWeight={500}>
-                                        {s.name}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.disabled">
-                                        {s.meta}
-                                    </Typography>
-                                </Box>
-                                <Chip
-                                    label={s.code}
-                                    size="small"
-                                    sx={{ fontFamily: "monospace", fontSize: 11 }}
-                                />
-                            </Box>
-                        ))}
-                    </Box>
                 </Paper>
             </Box>
         </Box>
