@@ -12,20 +12,21 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     const data = await api.post("/auth/login", { email, password });
     sessionStorage.setItem("cg_token", data.access_token);
-    const profile = { id: data.user_id, email };
+    const profile = { id: data.user_id, email, role: data.role ?? "member" };
     sessionStorage.setItem("cg_user", JSON.stringify(profile));
     setUser(profile);
     return profile;
   }, []);
 
-  const register = useCallback(async (email, password, fullName) => {
+  const register = useCallback(async (email, password, fullName, role = "member") => {
     const data = await api.post("/auth/register", {
       email,
       password,
       full_name: fullName,
+      role,
     });
     sessionStorage.setItem("cg_token", data.access_token);
-    const profile = { id: data.user_id, email, full_name: fullName };
+    const profile = { id: data.user_id, email, full_name: fullName, role: data.role ?? role };
     sessionStorage.setItem("cg_user", JSON.stringify(profile));
     setUser(profile);
     return profile;
