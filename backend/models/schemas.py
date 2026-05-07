@@ -76,12 +76,11 @@ class SurveyJoinResponse(BaseModel):
     joined_at: datetime
 
 
-class SurveyGetResponse(BaseModel):
-    survey_id: uuid.UUID
-    title: str
-    description: str
-    deadline: datetime | None
-    questions: list[SurveyGetQuestion]
+class SurveyGetAnswerChoice(BaseModel):
+    answer_option_id: uuid.UUID
+    option_text: str
+    # option_index: str
+
 
 class SurveyGetQuestion(BaseModel):
     question_id: uuid.UUID
@@ -89,14 +88,16 @@ class SurveyGetQuestion(BaseModel):
     question_type: str = Field(..., pattern="^(multiple_choice|short_answer)$")
     # order_index: str
     answers: list[SurveyGetAnswerChoice] | None
-    saved_answer_id: uuid.UUID | None 
-    saved_answer_text: str | None 
+    saved_answer_id: uuid.UUID | None
+    saved_answer_text: str | None
 
 
-class SurveyGetAnswerChoice(BaseModel):
-    answer_option_id: uuid.UUID
-    option_text: str
-    # option_index: str
+class SurveyGetResponse(BaseModel):
+    survey_id: uuid.UUID
+    title: str
+    description: str
+    deadline: datetime | None
+    questions: list[SurveyGetQuestion]
 
 
 class SurveyPreview(BaseModel):
@@ -106,15 +107,15 @@ class SurveyPreview(BaseModel):
     deadline: datetime | None
 
 
-class SurveyAnswersInput(BaseModel):
-    answers: dict[str, SurveyAnswerByType]
-    survey_id: uuid.UUID
-    user_id: uuid.UUID
-
 class SurveyAnswerByType(BaseModel):
     question_type: str = Field(..., pattern="^(multiple_choice|short_answer)$")
     answer_id: uuid.UUID | None
     answer_text: str | None
+
+class SurveyAnswersInput(BaseModel):
+    answers: dict[str, SurveyAnswerByType]
+    survey_id: uuid.UUID
+    user_id: uuid.UUID
 
 # ── Teams ─────────────────────────────────────────────────────────────────────
 
