@@ -24,7 +24,7 @@ const DRAWER_WIDTH = 220;
 
 const BASE_NAV_ITEMS = [
   { id: 'dashboard',    label: 'Dashboard',     href: '/dashboard',    icon: <DashboardOutlinedIcon fontSize="small" /> },
-  { id: 'survey-detail',label: 'My Surveys',    href: '/mysurveys',    icon: <PollOutlinedIcon fontSize="small" /> },
+  { id: 'my-surveys',label: 'My Surveys',    href: '/mysurveys',    icon: <PollOutlinedIcon fontSize="small" /> },
   { id: 'find-teams',   label: 'Find Teams',    href: '/teams',        icon: <GroupsOutlinedIcon fontSize="small" /> },
   { id: 'profile',      label: 'Profile',       href: '/profile',      icon: <Person2OutlinedIcon fontSize="small" /> },
   { id: 'survey-join',  label: 'Join Survey',   href: '/surveyjoin',   icon: <LoginOutlinedIcon fontSize="small" /> },
