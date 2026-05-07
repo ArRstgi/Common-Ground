@@ -185,7 +185,7 @@ export default function SurveyCreate() {
 
     // ── Submission ────────────────────────────────────────────────────────────
 
-    async function handleSubmit(user_id) {
+    async function handleSubmit() {
         setError("");
 
         if (!form.title.trim()) {
@@ -201,7 +201,6 @@ export default function SurveyCreate() {
             title: form.title.trim(),
             description: form.desc.trim() || null,
             deadline: form.deadline || null,
-            created_by: user_id,
             questions: questions.map((q, i) => ({
                 prompt: q.prompt,
                 question_type: q.type === "mc" ? "multiple_choice" : "short_answer",
@@ -217,7 +216,6 @@ export default function SurveyCreate() {
             setSubmitting(true);
 
             const data = await api.post("/surveys/create", payload)
-
             setSuccessCode(data.join_code);
         } catch (err) {
             setError(err.message || "Something went wrong. Please try again.");
@@ -254,7 +252,7 @@ export default function SurveyCreate() {
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
-            <Box component="main" sx={{ flex: 1, p: "32px 36px", maxWidth: 740 }}>
+            <Box component="main" sx={{ maxWidth: 680, mx: "auto", px: { xs: 2, sm: 4 }, pt: 5, pb: 8 }}>
 
                 {/* Page header */}
                 <Box mb={3.5}>
@@ -528,7 +526,7 @@ export default function SurveyCreate() {
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.25, mt: 1 }}>
                     <Button
                         variant="contained"
-                        onClick={() => handleSubmit(user.id)}
+                        onClick={handleSubmit}
                         disabled={submitting}
                         startIcon={
                             submitting ? <CircularProgress size={16} color="inherit" /> : null

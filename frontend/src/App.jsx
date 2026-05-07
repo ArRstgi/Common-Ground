@@ -41,7 +41,7 @@ export default function App() {
 
           <Route path="/mysurveys" element={<ProtectedRoute><MySurveys /></ProtectedRoute>} />
           <Route path="/surveyjoin" element={<ProtectedRoute><SurveyJoin /></ProtectedRoute>} />
-          <Route path="/surveycreate" element={<ProtectedRoute><SurveyCreate /></ProtectedRoute>} />
+          <Route path="/surveycreate" element={<ProtectedRoute requiredRole="survey_creator"><SurveyCreate /></ProtectedRoute>} />
           <Route path="/surveydetail/:survey_id" element={<ProtectedRoute><SurveyDetail /></ProtectedRoute>} />
 
 

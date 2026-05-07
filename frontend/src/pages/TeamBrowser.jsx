@@ -23,6 +23,7 @@ import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import { getClient } from '../lib/supabase';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useSurvey } from '../context/SurveyContext';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -45,17 +46,32 @@ function daysLeft(deadline) {
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
 
-async function fetchBrowserData() {
+async function fetchBrowserData(activeSurveyId) {
   const sb = getClient();
 
-  // Use the most recent survey
-  const { data: survey, error: sErr } = await sb
-    .from('surveys')
-    .select('id, title, deadline')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (sErr) throw sErr;
+  let survey;
+  if (activeSurveyId) {
+    const { data, error: sErr } = await sb
+      .from('surveys')
+      .select('id, title, deadline')
+      .eq('id', activeSurveyId)
+      .maybeSingle();
+    if (sErr) throw sErr;
+    survey = data;
+  }
+
+  // Fall back to most recent if no active survey set
+  if (!survey) {
+    const { data, error: sErr } = await sb
+      .from('surveys')
+      .select('id, title, deadline')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (sErr) throw sErr;
+    survey = data;
+  }
+
   if (!survey) throw new Error('No surveys found. Make sure the seed script has been run and RLS allows reads.');
 
   // All non-merged teams for this survey with approved members + profiles
@@ -306,6 +322,7 @@ function RecommendedCard({ rec, rank, onAction }) {
 export default function TeamBrowser() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { activeSurvey } = useSurvey();
 
   const [data, setData]         = useState(null);
   const [loading, setLoading]   = useState(true);
@@ -318,11 +335,12 @@ export default function TeamBrowser() {
   const [recLoading, setRecLoading] = useState(false);
 
   useEffect(() => {
-    fetchBrowserData()
+    setLoading(true);
+    fetchBrowserData(activeSurvey?.id ?? null)
       .then(setData)
       .catch(err => setError(err.message ?? 'Failed to load teams'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [activeSurvey?.id]);
 
   useEffect(() => {
     if (!data?.survey?.id) return;
@@ -409,9 +427,17 @@ export default function TeamBrowser() {
           }}
         >
           <FiberManualRecordIcon sx={{ fontSize: 9, color: 'success.main' }} />
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
             Viewing: <strong style={{ color: 'inherit' }}>{survey.title}</strong>
             {deadline && <>&nbsp;·&nbsp;{deadline}</>}
+          </Typography>
+          <Typography
+            variant="caption"
+            color="primary"
+            sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            onClick={() => navigate('/surveyjoin')}
+          >
+            Switch
           </Typography>
         </Box>
 

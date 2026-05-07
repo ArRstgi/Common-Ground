@@ -216,7 +216,7 @@ export default function MySurveys() {
                         <Typography variant="body2" color="text.disabled" mt={0.4}>
                             {surveys.length > 0
                                 ? `${surveys.length} survey${surveys.length === 1 ? "" : "s"}`
-                                : "Surveys you've created"}
+                                : "Surveys you've joined"}
                         </Typography>
                     </Box>
 
