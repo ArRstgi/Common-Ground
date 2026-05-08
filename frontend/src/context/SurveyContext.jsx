@@ -13,8 +13,13 @@ export function SurveyProvider({ children }) {
     setActiveSurveyState(survey);
   }
 
+  function clearSurvey() {
+    sessionStorage.removeItem("cg_survey");
+    setActiveSurveyState(null);
+  }
+
   return (
-    <SurveyContext.Provider value={{ activeSurvey, setActiveSurvey }}>
+    <SurveyContext.Provider value={{ activeSurvey, setActiveSurvey, clearSurvey }}>
       {children}
     </SurveyContext.Provider>
   );

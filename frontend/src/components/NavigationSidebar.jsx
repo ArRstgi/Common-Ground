@@ -19,6 +19,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import UserAvatar from "./UserAvatar";
+import { useSurvey } from '../context/SurveyContext';
 
 const DRAWER_WIDTH = 220;
 
@@ -54,6 +55,7 @@ const ROLE_LABELS = {
 
 export default function NavigationSidebar({ activeId }) {
   const { user, logout } = useAuth();
+  const { clearSurvey } = useSurvey();
   const navigate = useNavigate();
 
   const isSurveyCreator = user?.role === 'survey_creator';
@@ -66,6 +68,7 @@ export default function NavigationSidebar({ activeId }) {
 
   function handleLogout() {
     logout();
+    clearSurvey();
     navigate('/login');
   }
 
