@@ -19,15 +19,16 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import UserAvatar from "./UserAvatar";
+import { useSurvey } from '../context/SurveyContext';
 
 const DRAWER_WIDTH = 220;
 
 const BASE_NAV_ITEMS = [
-  { id: 'dashboard',    label: 'Dashboard',    href: '/dashboard',    icon: <DashboardOutlinedIcon fontSize="small" /> },
-  { id: 'survey-detail', label: 'My Surveys',  href: '/surveydetail', icon: <PollOutlinedIcon fontSize="small" /> },
-  { id: 'find-teams',  label: 'Find Teams',    href: '/teams',        icon: <GroupsOutlinedIcon fontSize="small" /> },
-  { id: 'profile',     label: 'Profile',       href: '/profile',      icon: <Person2OutlinedIcon fontSize="small" /> },
-  { id: 'survey-join', label: 'Join Survey',   href: '/surveyjoin',   icon: <LoginOutlinedIcon fontSize="small" /> },
+  { id: 'dashboard',    label: 'Dashboard',     href: '/dashboard',    icon: <DashboardOutlinedIcon fontSize="small" /> },
+  { id: 'my-surveys',label: 'My Surveys',    href: '/mysurveys',    icon: <PollOutlinedIcon fontSize="small" /> },
+  { id: 'find-teams',   label: 'Find Teams',    href: '/teams',        icon: <GroupsOutlinedIcon fontSize="small" /> },
+  { id: 'profile',      label: 'Profile',       href: '/profile',      icon: <Person2OutlinedIcon fontSize="small" /> },
+  { id: 'survey-join',  label: 'Join Survey',   href: '/surveyjoin',   icon: <LoginOutlinedIcon fontSize="small" /> },
 ];
 
 const CREATOR_NAV_ITEMS = [
@@ -39,6 +40,14 @@ export const NAV_ID_BY_PATH = {};
   NAV_ID_BY_PATH[item.href] = item.id;
 });
 
+export function nav_id_by_path(path) {
+    if (path.includes("/surveydetail")) {
+        return "my-surveys";
+    }
+    return NAV_ID_BY_PATH[path];
+}
+
+
 const ROLE_LABELS = {
   survey_creator: 'Survey Creator',
   member: 'Member',
@@ -46,6 +55,7 @@ const ROLE_LABELS = {
 
 export default function NavigationSidebar({ activeId }) {
   const { user, logout } = useAuth();
+  const { clearSurvey } = useSurvey();
   const navigate = useNavigate();
 
   const isSurveyCreator = user?.role === 'survey_creator';
@@ -58,6 +68,7 @@ export default function NavigationSidebar({ activeId }) {
 
   function handleLogout() {
     logout();
+    clearSurvey();
     navigate('/login');
   }
 

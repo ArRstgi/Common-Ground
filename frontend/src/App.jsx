@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
-import NavigationSidebar, { NAV_ID_BY_PATH } from "./components/NavigationSidebar";
+import NavigationSidebar, { nav_id_by_path } from "./components/NavigationSidebar";
 import Box from "@mui/material/Box";
 
 import Login        from "./pages/Login";
@@ -12,6 +12,7 @@ import TeamBrowser  from "./pages/TeamBrowser";
 import SurveyCreate from "./pages/SurveyCreate";
 import Profile      from "./pages/Profile";
 import SurveyDetail from "./pages/SurveyDetails";
+import MySurveys from "./pages/MySurveys";
 
 
 const ROUTES_WITHOUT_SIDEBAR = [
@@ -22,7 +23,7 @@ const ROUTES_WITHOUT_SIDEBAR = [
 export default function App() {
   const location = useLocation();
   const showSidebar = !ROUTES_WITHOUT_SIDEBAR.includes(location.pathname);
-  const activeId = NAV_ID_BY_PATH[location.pathname] ?? "dashboard";
+  const activeId = nav_id_by_path(location.pathname) ?? "dashboard";
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
@@ -32,16 +33,19 @@ export default function App() {
       <Box component="main" sx={{ flex: 1 }}>
         <Routes>
           {/* Public routes */}
-          <Route path="/login"    element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
           {/* Protected routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
-          {/* SHOULD be protected, unprotected for testing  */}
-          <Route path="/surveyjoin" element={<SurveyJoin />} />
+          <Route path="/mysurveys" element={<ProtectedRoute><MySurveys /></ProtectedRoute>} />
+          <Route path="/surveyjoin" element={<ProtectedRoute><SurveyJoin /></ProtectedRoute>} />
           <Route path="/surveycreate" element={<ProtectedRoute requiredRole="survey_creator"><SurveyCreate /></ProtectedRoute>} />
-          <Route path="/surveydetail" element={<ProtectedRoute><SurveyDetail /></ProtectedRoute>} />
+          <Route path="/surveydetail/:survey_id" element={<ProtectedRoute><SurveyDetail /></ProtectedRoute>} />
+
+
+          {/* SHOULD be protected, unprotected for testing  */}
           <Route path="/profile" element={<Profile />} />
           <Route path="/teams" element={<TeamBrowser />} />
           <Route path="/teams/:teamId" element={<TeamDetail />} />

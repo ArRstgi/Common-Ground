@@ -1,6 +1,7 @@
 import random
 import string
 import uuid
+from auth import get_current_user # type: ignore
 from datetime import datetime, timezone
  
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,6 +12,9 @@ from auth import get_user_id
 from db import supabase_admin
 from models.schemas import AnswerOptionIn, QuestionIn, SurveyCreateRequest, SurveyCreateResponse
 from models.schemas import SurveyJoinRequest, SurveyJoinResponse
+from models.schemas import SurveyGetResponse, SurveyGetQuestion, SurveyGetAnswerChoice
+from models.schemas import SurveyPreview, SurveyAnswersInput
+ 
 
 from config import settings
 
@@ -249,3 +253,185 @@ async def join_survey(body: SurveyJoinRequest):
         survey_id=uuid.UUID(output["survey_id"]), # type: ignore
         joined_at=datetime.fromisoformat(output["joined_at"]), # type: ignore
     )
+
+
+@router.get("/full_survey_by_id/{survey_id}", response_model=SurveyGetResponse, status_code=200)
+async def get_full_survey_by_id(survey_id: str, user = Depends(get_current_user)):
+
+    supabase = get_supabase()
+
+    survey_res = (
+        supabase.table("surveys")
+        .select("id", "title", "description", "deadline")
+        .eq("id", uuid.UUID(survey_id))
+        .execute()
+    )
+
+    if not survey_res.data:
+        raise HTTPException(
+            status_code=404,
+            detail="That survey was not found. Please try again."
+        )
+    
+    survey = survey_res.data[0]
+
+    responses_res = (
+        supabase.table("survey_responses")
+        .select("question_id", "answer_option_id", "answer_text")
+        .eq("survey_id", survey_id)
+        .eq("user_id", user["sub"])
+        .execute()
+    )
+
+    # Build a lookup map: question_id -> saved response row
+    saved = {r["question_id"]: r for r in responses_res.data} # type: ignore
+
+    questions = await get_questions_by_survey_id(survey["id"], supabase) # type: ignore
+
+    # Attach saved answers to each question
+    for q in questions:
+        response = saved.get(str(q.question_id))
+        q.saved_answer_id = (
+            uuid.UUID(response["answer_option_id"]) # type: ignore
+            if response and response["answer_option_id"] # type: ignore 
+            else None
+        )
+        q.saved_answer_text = response["answer_text"] if response else None # type: ignore
+
+
+    return SurveyGetResponse(
+        survey_id=survey["id"], # type: ignore
+        title=survey["title"], # type: ignore
+        description=survey["description"] or "<No Description>", # type: ignore
+        deadline = datetime.fromisoformat(survey["deadline"]) if survey["deadline"] else None, # type: ignore
+        questions=questions
+    )
+
+async def get_questions_by_survey_id(survey_id: str, supabase: Client) -> list[SurveyGetQuestion]:
+    questions_out: list[SurveyGetQuestion] = []
+
+    questions_res = (
+        supabase.table("questions")
+        .select("id", "survey_id", "prompt", "question_type", "order_index")
+        .eq("survey_id", survey_id) # type: ignore
+        .order("order_index", desc=False)
+        .execute()
+    )
+
+    questions = questions_res.data
+    if not questions:
+        raise HTTPException(
+            status_code=404,
+            detail="Somehow the survey was found but not its questions. This shouldn't happen."
+        )
+
+    for question in questions:
+        if question["question_type"] == "short_answer": # type: ignore
+            questions_out.append(SurveyGetQuestion(
+                question_id=uuid.UUID(question["id"]), # type: ignore
+                prompt=question["prompt"], # type: ignore
+                question_type=question["question_type"], # type: ignore
+                answers=None,
+                saved_answer_id=None,
+                saved_answer_text=None,
+            ))      
+        else:
+            questions_out.append(SurveyGetQuestion( 
+                question_id=uuid.UUID(question["id"]), # type: ignore
+                prompt=question["prompt"], # type: ignore
+                question_type=question["question_type"], # type: ignore
+                answers=await get_answers_by_question_id(question["id"], supabase), # type: ignore
+                saved_answer_id=None,
+                saved_answer_text=None,
+            ))            
+
+    return questions_out
+
+async def get_answers_by_question_id(question_id: str, supabase: Client) -> list[SurveyGetAnswerChoice]:
+    answers_out: list[SurveyGetAnswerChoice] = []
+
+    answers_res = (
+        supabase.table("answer_options")
+        .select("id", "question_id", "option_text", "order_index")
+        .eq("question_id", question_id) # type: ignore
+        .order("order_index", desc=False)
+        .execute()
+    )
+
+    answers = answers_res.data
+    if not answers:
+        raise HTTPException(
+            status_code=404,
+            detail="Somehow the multiple choice question was found but not its answer choices. This shouldn't happen."
+        )
+    
+    for answer in answers:
+        answers_out.append(SurveyGetAnswerChoice(
+            answer_option_id=uuid.UUID(answer["id"]), # type: ignore
+            option_text=answer["option_text"] # type: ignore
+        ))
+
+    return answers_out
+
+@router.get("/surveys_by_user/{user_id}", response_model=list[SurveyPreview], status_code=200)
+async def get_surveys_by_user(user_id: str):
+    supabase = get_supabase()
+    output: list[SurveyPreview] = []
+
+    joined_surveys_res = (
+        supabase.table("survey_members")
+        .select("survey_id", "user_id", "joined_at")
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    
+
+    for entry in joined_surveys_res.data:
+        
+        survey_res = (
+            supabase.table("surveys")
+            .select("id", "title", "description", "deadline")
+            .eq("id", entry["survey_id"]) # type: ignore
+            .execute()
+        )
+
+        if not survey_res.data:
+            continue
+
+        survey = survey_res.data[0]
+        output.append(SurveyPreview(
+            survey_id=survey["id"], # type: ignore
+            title=survey["title"], # type: ignore
+            description=survey["description"] or "<No Description>", # type: ignore
+            deadline=datetime.fromisoformat(survey["deadline"]) if survey["deadline"] else None # type: ignore
+        ))
+
+    return output
+
+@router.post("/save_answers", status_code=201)
+async def save_answers(body: SurveyAnswersInput):
+
+    supabase = get_supabase()
+
+    try:
+        for qid, answer in body.answers.items():
+            supabase.table("survey_responses").upsert(
+                {
+                    "id": str(uuid.uuid4()),
+                    "survey_id": str(body.survey_id),
+                    "user_id": str(body.user_id),
+                    "question_id": str(qid),
+                    "answer_option_id": str(answer.answer_id) if answer.question_type == "multiple_choice" else None,
+                    "answer_text": str(answer.answer_text) if answer.question_type == "short_answer" else None,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                },
+                on_conflict="survey_id,question_id,user_id",
+            ).execute()
+    except:
+        raise HTTPException(
+            status_code=500,
+            detail="Something went wrong when saving your answers. Please try again."
+        )
+    
+    return ""
