@@ -215,7 +215,7 @@ export default function SurveyCreate() {
         try {
             setSubmitting(true);
 
-            const data = await api.post("/surveys/create", payload);
+            const data = await api.post("/surveys/create", payload)
             setSuccessCode(data.join_code);
         } catch (err) {
             setError(err.message || "Something went wrong. Please try again.");
@@ -238,7 +238,7 @@ export default function SurveyCreate() {
     if (successCode) {
         return (
             <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
-                <Box component="main" sx={{ flex: 1, p: "32px 36px", maxWidth: 740 }}>
+                <Box component="main" sx={{ maxWidth: 680, mx: "auto", px: { xs: 2, sm: 4 }, pt: 5, pb: 8 }}>
                     <SuccessScreen
                         joinCode={successCode}
                         onCreateAnother={handleCreateAnother}
@@ -252,7 +252,7 @@ export default function SurveyCreate() {
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.100" }}>
-            <Box component="main" sx={{ flex: 1, p: "32px 36px", maxWidth: 740 }}>
+            <Box component="main" sx={{ maxWidth: 680, mx: "auto", px: { xs: 2, sm: 4 }, pt: 5, pb: 8 }}>
 
                 {/* Page header */}
                 <Box mb={3.5}>
