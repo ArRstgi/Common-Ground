@@ -67,10 +67,27 @@ The app will be available at `http://localhost:5173`.
 
 ### 4. Run the tests
 
+Tests are located in `backend/tests/`. No live database is required — all Supabase calls are mocked.
+
+Run the full test suite:
+
 ```bash
 cd backend
 uv run pytest tests/ -v
 ```
+
+Run a specific test file:
+
+```bash
+uv run pytest tests/test_merge_requests.py -v
+uv run pytest tests/test_recommendations.py -v
+uv run pytest tests/test_search_teams.py -v
+```
+
+**Test coverage:**
+- `test_merge_requests.py` — merge request creation, approval, and rejection
+- `test_recommendations.py` — recommendation endpoints and compatibility scoring logic
+- `test_search_teams.py` — team search filtering, sorting, and question answer filter
 
 ## Using Supabase Locally
 
