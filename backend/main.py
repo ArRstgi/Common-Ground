@@ -4,6 +4,7 @@ from routers.auth import router as auth_router
 from routers.recommendations import router as recommendations_router
 from routers.teams import router as teams_router
 from routers.surveys import router as surveys_router
+from routers.search import router as search_router
 
 app = FastAPI(
     title="Common Ground API",
@@ -26,6 +27,7 @@ app.include_router(auth_router)
 app.include_router(recommendations_router)
 app.include_router(teams_router)
 app.include_router(surveys_router)
+app.include_router(search_router)
 
 
 @app.get("/health", tags=["meta"])
