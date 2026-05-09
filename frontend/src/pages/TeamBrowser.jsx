@@ -11,6 +11,10 @@ import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 import LinearProgress from '@mui/material/LinearProgress';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
@@ -46,7 +50,7 @@ function daysLeft(deadline) {
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
 
-async function fetchBrowserData(activeSurveyId) {
+async function fetchBrowserData(activeSurveyId, { sortBy, sortOrder, filterQuestionId } = {}) {
   const sb = getClient();
 
   let survey;
@@ -74,21 +78,20 @@ async function fetchBrowserData(activeSurveyId) {
 
   if (!survey) throw new Error('No surveys found. Make sure the seed script has been run and RLS allows reads.');
 
-  // All non-merged teams for this survey with approved members + profiles
-  const { data: teams, error: tErr } = await sb
-    .from('teams')
-    .select('id, name, description, max_size, created_by, team_members(user_id, status, profiles(full_name))')
+  const { data: questions } = await sb
+    .from('questions')
+    .select('id, prompt, question_type')
     .eq('survey_id', survey.id)
-    .is('merged_into', null);
-  if (tErr) throw tErr;
+    .order('order_index');
 
-  // Filter to approved members only
-  const normalised = (teams ?? []).map(t => ({
-    ...t,
-    team_members: (t.team_members ?? []).filter(m => m.status === 'approved'),
-  }));
+  const params = new URLSearchParams({ survey_id: survey.id, page_size: 100 });
+  if (sortBy) params.set('sort_by', sortBy);
+  if (sortOrder) params.set('sort_order', sortOrder);
+  if (filterQuestionId) params.set('filter_question_id', filterQuestionId);
 
-  return { survey, teams: normalised };
+  const searchRes = await api.get(`/search/teams?${params}`);
+
+  return { survey, teams: searchRes.results, questions: questions ?? [] };
 }
 
 // ── Team card ─────────────────────────────────────────────────────────────────
@@ -327,20 +330,26 @@ export default function TeamBrowser() {
   const [data, setData]         = useState(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
-  const [tab, setTab]           = useState('all');
-  const [search, setSearch]     = useState('');
-  const [openOnly, setOpenOnly] = useState(false);
-  const [recFilter, setRecFilter] = useState('all'); // 'all' | 'person' | 'team'
+  const [tab, setTab]                     = useState('all');
+  const [search, setSearch]               = useState('');
+  const [openOnly, setOpenOnly]           = useState(false);
+  const [minSize, setMinSize]             = useState('');
+  const [maxSize, setMaxSize]             = useState('');
+  const [sortKey, setSortKey]             = useState('');  // '' | 'name_asc' | 'name_desc' | 'spots_asc' | 'spots_desc'
+  const [filterQuestionId, setFilterQuestionId] = useState('');
+  const [recFilter, setRecFilter]         = useState('all'); // 'all' | 'person' | 'team'
   const [recommendations, setRecommendations] = useState([]);
   const [recLoading, setRecLoading] = useState(false);
 
+  const [sortBy, sortOrder] = sortKey ? sortKey.split('_') : ['', 'asc'];
+
   useEffect(() => {
     setLoading(true);
-    fetchBrowserData(activeSurvey?.id ?? null)
+    fetchBrowserData(activeSurvey?.id ?? null, { sortBy, sortOrder, filterQuestionId })
       .then(setData)
       .catch(err => setError(err.message ?? 'Failed to load teams'))
       .finally(() => setLoading(false));
-  }, [activeSurvey?.id]);
+  }, [activeSurvey?.id, sortKey, filterQuestionId]);
 
   useEffect(() => {
     if (!data?.survey?.id) return;
@@ -357,12 +366,17 @@ export default function TeamBrowser() {
 
   const filtered = useMemo(() => {
     if (!data) return [];
+    const min = minSize !== '' ? Number(minSize) : null;
+    const max = maxSize !== '' ? Number(maxSize) : null;
     return data.teams.filter(t => {
+      const count = t.team_members.length;
       const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase());
-      const matchesOpen   = !openOnly || (t.max_size - t.team_members.length) > 0;
-      return matchesSearch && matchesOpen;
+      const matchesOpen   = !openOnly || (t.max_size - count) > 0;
+      const matchesMin    = min === null || count >= min;
+      const matchesMax    = max === null || count <= max;
+      return matchesSearch && matchesOpen && matchesMin && matchesMax;
     });
-  }, [data, search, openOnly]);
+  }, [data, search, openOnly, minSize, maxSize]);
 
   // Recommended tab — data from real API endpoint
   const recommended = recFilter === 'all'
@@ -494,7 +508,7 @@ export default function TeamBrowser() {
         {/* ── All teams ─────────────────────────────────────────────────────── */}
         {tab === 'all' && (
           <>
-            <Box sx={{ display: 'flex', gap: 1.25, mb: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', gap: 1.25, mb: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
               <TextField
                 size="small"
                 placeholder="Search teams…"
@@ -523,6 +537,55 @@ export default function TeamBrowser() {
               <Typography variant="caption" fontFamily="monospace" color="text.disabled" sx={{ ml: 'auto' }}>
                 {filtered.length} team{filtered.length !== 1 ? 's' : ''}
               </Typography>
+            </Box>
+
+            {/* Second filter row */}
+            <Box sx={{ display: 'flex', gap: 1.25, mb: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+              <FormControl size="small" sx={{ minWidth: 160 }}>
+                <InputLabel>Sort by</InputLabel>
+                <Select value={sortKey} label="Sort by" onChange={e => setSortKey(e.target.value)}>
+                  <MenuItem value=""><em>Default</em></MenuItem>
+                  <MenuItem value="name_asc">Name A–Z</MenuItem>
+                  <MenuItem value="name_desc">Name Z–A</MenuItem>
+                  <MenuItem value="spots_desc">Most spots first</MenuItem>
+                  <MenuItem value="spots_asc">Fewest spots first</MenuItem>
+                </Select>
+              </FormControl>
+
+              <TextField
+                size="small"
+                label="Min members"
+                type="number"
+                value={minSize}
+                onChange={e => setMinSize(e.target.value)}
+                slotProps={{ htmlInput: { min: 0, max: 20 } }}
+                sx={{ width: 120 }}
+              />
+              <TextField
+                size="small"
+                label="Max members"
+                type="number"
+                value={maxSize}
+                onChange={e => setMaxSize(e.target.value)}
+                slotProps={{ htmlInput: { min: 0, max: 20 } }}
+                sx={{ width: 120 }}
+              />
+
+              {(data?.questions ?? []).length > 0 && (
+                <FormControl size="small" sx={{ minWidth: 220, maxWidth: 320 }}>
+                  <InputLabel>Filter by shared answer</InputLabel>
+                  <Select
+                    value={filterQuestionId}
+                    label="Filter by shared answer"
+                    onChange={e => setFilterQuestionId(e.target.value)}
+                  >
+                    <MenuItem value=""><em>None</em></MenuItem>
+                    {(data.questions).map(q => (
+                      <MenuItem key={q.id} value={q.id}>{q.prompt}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
             </Box>
 
             {filtered.length === 0 ? (

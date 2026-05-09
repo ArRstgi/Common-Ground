@@ -141,3 +141,27 @@ class MergeRequestResponse(BaseModel):
     target_team_id: str
     status: str
     created_at: datetime
+
+
+# ── Search ────────────────────────────────────────────────────────────────────
+
+class SearchMemberProfile(BaseModel):
+    user_id: str
+    full_name: Optional[str]
+
+
+class TeamSearchResult(BaseModel):
+    id: str
+    name: str
+    description: Optional[str]
+    max_size: int
+    created_by: str
+    team_members: list[SearchMemberProfile]
+
+
+class TeamSearchResponse(BaseModel):
+    results: list[TeamSearchResult]
+    total: int
+    page: int
+
+
