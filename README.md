@@ -73,16 +73,16 @@ Run the full test suite:
 
 ```bash
 cd backend
-uv run pytest tests/ -v
+uv run pytest tests/ --cov=routers/ --cov-report=term-missing -v
 ```
 
 Run a specific test file:
 
 ```bash
-uv run pytest tests/test_merge_requests.py -v
-uv run pytest tests/test_recommendations.py -v
-uv run pytest tests/test_search_teams.py -v
-uv run pytest tests/test_surveys.py -v
+uv run pytest tests/test_merge_requests.py --cov=routers.teams --cov-report=term-missing -v
+uv run pytest tests/test_recommendations.py --cov=routers.recommendations --cov-report=term-missing -v
+uv run pytest tests/test_search_teams.py --cov=routers.search --cov-report=term-missing -v
+uv run pytest tests/test_surveys.py --cov=routers.surveys --cov-report=term-missing -v
 ```
 
 **Test coverage:**
