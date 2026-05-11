@@ -90,6 +90,7 @@ uv run pytest tests/test_surveys.py --cov=routers.surveys --cov-report=term-miss
 - `test_recommendations.py` — recommendation endpoints and compatibility scoring logic
 - `test_search_teams.py` — team search filtering, sorting, and question answer filter
 - `test_surveys.py` - survey creation, joining, retrieval, and submission
+- `test_profiles.py` — profile retrieval, profile updates, and survey response listing
 
 ## Using Supabase Locally
 
