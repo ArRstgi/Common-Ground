@@ -426,7 +426,7 @@ async def save_answers(body: SurveyAnswersInput):
                     "answer_text": str(answer.answer_text) if answer.question_type == "short_answer" else None,
                     "created_at": datetime.now(timezone.utc).isoformat(),
                 },
-                on_conflict="survey_id,question_id,user_id",
+                on_conflict="user_id,question_id",
             ).execute()
     except:
         raise HTTPException(
