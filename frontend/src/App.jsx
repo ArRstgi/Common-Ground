@@ -38,17 +38,13 @@ export default function App() {
 
           {/* Protected routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-
           <Route path="/mysurveys" element={<ProtectedRoute><MySurveys /></ProtectedRoute>} />
           <Route path="/surveyjoin" element={<ProtectedRoute><SurveyJoin /></ProtectedRoute>} />
           <Route path="/surveycreate" element={<ProtectedRoute requiredRole="survey_creator"><SurveyCreate /></ProtectedRoute>} />
           <Route path="/surveydetail/:survey_id" element={<ProtectedRoute><SurveyDetail /></ProtectedRoute>} />
-
-
-          {/* SHOULD be protected, unprotected for testing  */}
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/teams" element={<TeamBrowser />} />
-          <Route path="/teams/:teamId" element={<TeamDetail />} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/teams" element={<ProtectedRoute><TeamBrowser /></ProtectedRoute>} />
+          <Route path="/teams/:teamId" element={<ProtectedRoute><TeamDetail /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
