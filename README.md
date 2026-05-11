@@ -82,22 +82,16 @@ Run a specific test file:
 uv run pytest tests/test_merge_requests.py -v
 uv run pytest tests/test_recommendations.py -v
 uv run pytest tests/test_search_teams.py -v
-<<<<<<< HEAD
 uv run pytest tests/test_surveys.py -v
-=======
 uv run pytest tests/test_profiles.py -v
->>>>>>> dev
 ```
 
 **Test coverage:**
 - `test_merge_requests.py` — merge request creation, approval, and rejection
 - `test_recommendations.py` — recommendation endpoints and compatibility scoring logic
 - `test_search_teams.py` — team search filtering, sorting, and question answer filter
-<<<<<<< HEAD
 - `test_surveys.py` - survey creation, joining, retrieval, and submission
-=======
 - `test_profiles.py` — profile retrieval, profile updates, and survey response listing
->>>>>>> dev
 
 ## Using Supabase Locally
 
