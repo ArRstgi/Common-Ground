@@ -33,3 +33,9 @@ supabase/.temp
 
 # Archive
 archive/
+
+# Playwright
+playwright-report/
+test-results/
+.playwright/
+frontend/.playwright/

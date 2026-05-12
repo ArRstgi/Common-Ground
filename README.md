@@ -97,7 +97,7 @@ uv run pytest tests/test_profiles.py --cov=routers.profiles --cov-report=term-mi
 
 1. Make sure to `npm install` in frontend and `uv sync` in backend.
 
-2. Run `npx supabase status` and pay attention to the Authentication Keys section.
+2. Run `npx supabase status` in the root folder, and pay attention to the Authentication Keys section. (If it prompts you to install supabase, do so.) You will need the Publishable Key and Secret Key for steps 3 and 4. 
 
 3. Add an .env.local file to `backend` folder.
 ```
@@ -115,6 +115,57 @@ VITE_SUPABASE_PUBLISHABLE_KEY=<Publishable Key from supabase status>
 
 5. Start the local Supabase instance: `npx supabase start`
 
-6. Reset the database: `npx supabase db reset`
+6. Reset the database: `npx supabase db reset`. This also seeds the database with demo data and the Playwright E2E test users automatically.
+
+---
+
+## E2E Tests (Playwright)
+
+End-to-end tests live in `frontend/e2e/` and cover three flows: auth, survey creation and join, and response submission and persistence.
+
+### Prerequisites
+
+These tests require a local supabase instance. See the above instructions in the "Using Supabase Locally" section to set it up. Two services must be running before you run the tests:
+
+```bash
+# Terminal 1 — local Supabase
+npx supabase start
+
+# Terminal 2 — backend
+cd backend && uv run uvicorn main:app --reload
+```
+
+The database must be seeded (includes E2E test accounts):
+
+```bash
+npx supabase db reset
+```
+
+### Run the tests
+
+```bash
+cd frontend
+npm run test:e2e
+```
+
+For interactive mode with a visible browser and step-through debugging:
+
+```bash
+npm run test:e2e:ui
+```
+
+### Test accounts (created by seed)
+
+| Email | Password | Role |
+|---|---|---|
+| `e2e_creator@commonground.dev` | `E2ePass1!` | `survey_creator` |
+| `e2e_member_a@commonground.dev` | `E2ePass1!` | `member` |
+| `e2e_member_b@commonground.dev` | `E2ePass1!` | `member` |
+
+### Test coverage
+
+- `01-auth.spec.js` — login, logout, wrong password error, new account registration
+- `02-survey-create-join.spec.js` — survey creation UI and join-by-code flow
+- `03-survey-responses.spec.js` — answer submission and pre-population on reload
 
 ---
