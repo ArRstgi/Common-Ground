@@ -8,6 +8,9 @@ dist/
 *.egg-info/
 .pytest_cache/
 
+# Testing
+*.coverage*
+
 # Environment
 .env
 .env.local

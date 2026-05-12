@@ -10,6 +10,8 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "pydantic[email]>=2.7.0",
     "pydantic-settings>=2.2.0",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.1.0",
 ]
 
 [tool.uv]
