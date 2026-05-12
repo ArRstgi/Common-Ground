@@ -97,7 +97,7 @@ uv run pytest tests/test_profiles.py -v
 
 1. Make sure to `npm install` in frontend and `uv sync` in backend.
 
-2. Run `npx supabase status` and pay attention to the Authentication Keys section.
+2. Run `npx supabase status` in the root folder, and pay attention to the Authentication Keys section. (If it prompts you to install supabase, do so.) You will need the Publishable Key and Secret Key for steps 3 and 4. 
 
 3. Add an .env.local file to `backend` folder.
 ```
@@ -115,9 +115,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=<Publishable Key from supabase status>
 
 5. Start the local Supabase instance: `npx supabase start`
 
-6. Reset the database: `npx supabase db reset`
-
-This also seeds the database with demo data and the Playwright E2E test users automatically.
+6. Reset the database: `npx supabase db reset`. This also seeds the database with demo data and the Playwright E2E test users automatically.
 
 ---
 
@@ -127,7 +125,7 @@ End-to-end tests live in `frontend/e2e/` and cover three flows: auth, survey cre
 
 ### Prerequisites
 
-Two services must be running before you run the tests:
+These tests require a local supabase instance. See the above instructions in the "Using Supabase Locally" section to set it up. Two services must be running before you run the tests:
 
 ```bash
 # Terminal 1 — local Supabase
