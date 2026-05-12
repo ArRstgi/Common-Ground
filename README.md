@@ -83,6 +83,7 @@ uv run pytest tests/test_merge_requests.py --cov=routers.teams --cov-report=term
 uv run pytest tests/test_recommendations.py --cov=routers.recommendations --cov-report=term-missing -v
 uv run pytest tests/test_search_teams.py --cov=routers.search --cov-report=term-missing -v
 uv run pytest tests/test_surveys.py --cov=routers.surveys --cov-report=term-missing -v
+uv run pytest tests/test_profiles.py --cov=routers.profiles --cov-report=term-missing -v
 ```
 
 **Test coverage:**
